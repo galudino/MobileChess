@@ -11,19 +11,19 @@ import model.game.Position;
 
 public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public final String PIECE_BR = "BR";
-    public final String PIECE_BN = "BN";
-    public final String PIECE_BB = "BB";
-    public final String PIECE_BQ = "BQ";
-    public final String PIECE_BK = "BK";
-    public final String PIECE_BP = "BP";
-    public final String PIECE_WR = "WR";
-    public final String PIECE_WN = "WN";
-    public final String PIECE_WB = "WB";
-    public final String PIECE_WQ = "WQ";
-    public final String PIECE_WK = "WK";
-    public final String PIECE_WP = "WP";
-    public final String PIECE_NO = "--";
+    public static final String PIECE_BR = "BR";
+    public static final String PIECE_BN = "BN";
+    public static final String PIECE_BB = "BB";
+    public static final String PIECE_BQ = "BQ";
+    public static final String PIECE_BK = "BK";
+    public static final String PIECE_BP = "BP";
+    public static final String PIECE_WR = "WR";
+    public static final String PIECE_WN = "WN";
+    public static final String PIECE_WB = "WB";
+    public static final String PIECE_WQ = "WQ";
+    public static final String PIECE_WK = "WK";
+    public static final String PIECE_WP = "WP";
+    public static final String PIECE_NO = "--";
 
     ImageView player;
 
