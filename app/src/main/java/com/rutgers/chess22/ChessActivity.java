@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import model.chess_set.Board;
+import model.game.Position;
+
 public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
 
     public final String PIECE_BR = "BR";
@@ -27,11 +30,13 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     private ImageView[][] board = new ImageView[8][8];
     private String selectedObject = null;
 
+    Board boardobj;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chess);
-
+        boardobj = new Board();
         initializeChessboard(this);
     }
 
@@ -71,6 +76,99 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    protected void movePiece(int oldFile, int oldRank, int newFile, int newRank) {
+        String oldTag = (String) board[oldFile][oldRank].getTag();
+        String newTag = (String) board[newFile][newRank].getTag();
+
+        if (oldTag.indexOf(PIECE_BR)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.blackrook);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_BN)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.blackknight);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_BB)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.blackbishop);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_BQ)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.blackqueen);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_BK)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.blackking);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_BP)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.blackpawn);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_WR)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.whiterook);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_WN)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.whiteknight);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_WB)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.whitebishop);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_WQ)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.whitequeen);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_WK)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.whiteking);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_WP)>=0) {
+            board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+            board[oldFile][oldRank].setTag(oldTag.substring(0,2) + PIECE_NO);
+            //
+            board[newFile][newRank].setImageResource(R.drawable.whitepawn);
+            board[newFile][newRank].setTag(newTag.substring(0,2) + oldTag.substring(2));
+        }
+        else if (oldTag.indexOf(PIECE_NO)>=0) {
+        } else {
+        }
+    }
+
     @Override
     public void onClick(View view) {
         if(view instanceof ImageView) {
@@ -86,7 +184,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 int fileSelected = currentObj.charAt(0) - '0';
                 int rankSelected = currentObj.charAt(1) - '0';
                 char pieceSelected = currentObj.charAt(3);
-                // do some moving things here.
+                movePiece(fileSelected, rankSelected, file, rank);
+                deselectPiece();
             } else {
                 selectPiece(tempTag);
             }
