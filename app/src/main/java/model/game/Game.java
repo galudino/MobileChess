@@ -51,6 +51,20 @@ public final class Game {
     private boolean validMoveInputWithDraw;
     private boolean validMoveInputWithPromotion;
 
+    private static final String whiteSpaceRegex = "[ \\\\t\\\\n\\\\x0b\\\\r\\\\f]";
+    private static final String fileRankRegex = "[a-h][1-8]";
+    private static final String validFileRankRegex = String.format("%s%s%s", fileRankRegex,
+            whiteSpaceRegex, fileRankRegex);
+
+    private static final String drawRegex = "draw\\?";
+    private static final String validFileRankWithDrawRegex = String.format("%s%s%s",
+            validFileRankRegex, whiteSpaceRegex, drawRegex);
+
+    private static final String pieceRegex = "[qQbBnNrR]";
+
+    private static final String validFileRankWithPromotion = String.format("%s%s%s",
+            validFileRankRegex, whiteSpaceRegex, pieceRegex);
+
     /**
      * Default constructor
      */
@@ -202,6 +216,65 @@ public final class Game {
     }
 
     /**
+     *
+     */
+    public boolean requestFromGUI(String input) {
+        //System.out.println(board);
+
+        //Scanner scan = new Scanner(System.in);
+
+        active = true;
+
+        //while (active) {
+            validMoveInput = false;
+            validMoveInputWithDraw = false;
+            validMoveInputWithPromotion = false;
+
+            drawGranted = false;
+            willResign = false;
+
+            //String prompt = "";
+            //String input = "";
+
+            //do {
+                //prompt = whitesMove ? "White's " : "Black's ";
+                //System.out.print(prompt + "move: ");
+
+                /**
+                 * Retrieve input from user
+                 */
+                //input = scan.nextLine();
+                //System.out.println();
+
+                readInputFromGUI(input);
+            //} while (validMoveInput == false);
+
+            whitesMove = whitesMove ? false : true;
+        //}
+
+        //scan.close();
+        /*
+        private boolean active;
+
+        private boolean whitesMove;
+
+        private boolean willDraw;
+        private boolean willResign;
+
+        private boolean didDraw;
+        private boolean drawGranted;
+        private boolean didResign;
+
+        private boolean validMoveInput;
+        private boolean validMoveInputWithDraw;
+        private boolean validMoveInputWithPromotion;
+        */
+
+        return true; // only temporary for now.
+        /// may become an enum for an error code instead
+    }
+
+    /**
      * Prints the current state of the move list
      */
     public void printMoveLog() {
@@ -261,20 +334,6 @@ public final class Game {
      * @param input String parsed from user input or plaintext file
      */
     private void readInput(String input) {
-        final String whiteSpaceRegex = "[ \\\\t\\\\n\\\\x0b\\\\r\\\\f]";
-        final String fileRankRegex = "[a-h][1-8]";
-        final String validFileRankRegex = String.format("%s%s%s", fileRankRegex,
-                whiteSpaceRegex, fileRankRegex);
-
-        final String drawRegex = "draw\\?";
-        final String validFileRankWithDrawRegex = String.format("%s%s%s",
-                validFileRankRegex, whiteSpaceRegex, drawRegex);
-
-        final String pieceRegex = "[qQbBnNrR]";
-
-        final String validFileRankWithPromotion = String.format("%s%s%s",
-                validFileRankRegex, whiteSpaceRegex, pieceRegex);
-
         validMoveInput = input.matches(validFileRankRegex);
 
         validMoveInputWithDraw = input.matches(validFileRankWithDrawRegex);
@@ -334,6 +393,90 @@ public final class Game {
         if (didDraw || didResign) {
             System.exit(0);
         }
+    }
+
+    /**
+     * Assesses String input for executing moves per Player
+     *
+     * @param input String parsed from user input or plaintext file
+     */
+    private void readInputFromGUI(String input) {
+        validMoveInput = input.matches(validFileRankRegex);
+
+        validMoveInputWithDraw = input.matches(validFileRankWithDrawRegex);
+
+        validMoveInputWithPromotion = input.matches(validFileRankWithPromotion);
+
+        drawGranted = willDraw && input.equals("draw");
+        willResign = input.equals("resign");
+
+        //String output = "";
+
+        int[] fileRankArray = null;
+
+        if (validMoveInput) {
+            willDraw = false;
+            fileRankArray = getFileRankArray(input);
+        } else if (validMoveInputWithPromotion) {
+            willDraw = false;
+            fileRankArray = getFileRankArray(input);
+        } else if (validMoveInputWithDraw) {
+            willDraw = true;
+            fileRankArray = getFileRankArray(input);
+        } else if (drawGranted) {
+            didDraw = true;
+            //output = "draw";
+        } else if (willResign) {
+            didResign = true;
+            //output = whitesMove ? "Black wins" : "White wins";
+        } else {
+            validMoveInput = false;
+            //output = "Invalid input, try again\n";
+        }
+
+        if (validMoveInput || validMoveInputWithPromotion
+                || validMoveInputWithDraw) {
+            int file = -1;
+            int rank = -1;
+            int newFile = -1;
+            int newRank = -1;
+            int promo = -1;
+
+            file = fileRankArray[0];
+            rank = fileRankArray[1];
+            newFile = fileRankArray[2];
+            newRank = fileRankArray[3];
+            promo = fileRankArray[4];
+
+            validMoveInput = whitesMove
+                    ? whitePlayMove(file, rank, newFile, newRank, promo)
+                    : blackPlayMove(file, rank, newFile, newRank, promo);
+
+            //output = validMoveInput ? "" : "Illegal move, try again";
+        }
+
+        //System.out.println(output);
+
+        if (didDraw || didResign) {
+            //System.exit(0);
+        }
+
+        /*
+        private boolean active;
+
+        private boolean whitesMove;
+
+        private boolean willDraw;
+        private boolean willResign;
+
+        private boolean didDraw;
+        private boolean drawGranted;
+        private boolean didResign;
+
+        private boolean validMoveInput;
+        private boolean validMoveInputWithDraw;
+        private boolean validMoveInputWithPromotion;
+        */
     }
 
     /**

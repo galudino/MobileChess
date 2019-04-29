@@ -7,7 +7,12 @@ import android.view.View;
 import android.widget.ImageView;
 
 import model.chess_set.Board;
+import model.game.Game;
 import model.game.Position;
+
+enum ReturnCode {
+    VALID_MOVE, VALID_MOVE_WITH_DRAW, VALID_MOVE_WITH_PROMOTION, INVALID_MOVE
+}
 
 public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -30,14 +35,70 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     private ImageView[][] board = new ImageView[8][8];
     private String selectedObject = null;
 
-    Board boardobj;
+    //Board boardobj;
+    Game game;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chess);
-        boardobj = new Board();
+        //boardobj = new Board();
         initializeChessboard(this);
+
+        game = new Game();
+
+        /** UNDER CONSTRUCTION in Game.java
+         *
+         * Use game.requestFromGUI(input)
+         * to make a move.
+         *
+         *
+         * (input is a String) in this format:
+         * "a1 a2"
+         * "a1 a2 draw?"
+         * "a1 a2 q"        or Q, or b, or B, ...
+         * "resign"
+         * "draw"
+         * The move made within the GUI must be translated
+         * into one of the strings above.
+         *
+         * if game.requestFromGUI(input) returns a VALID_MOVE
+         * enum (ReturnCode), then the backend has made the move within Board.java.
+         * Follow through by doing the graphical move for the GUI Piece avatar.
+         *
+         * If there is another ReturnCode enum returned,
+         * let the behavior for the GUI act accordingly.
+         *
+         *
+         * See Game.java:
+         * public boolean requestFromGUI(String input) - this may return an enum ReturnCode instead
+         * private void readInputFromGUI(String input) - this may return an enum ReturnCode instead
+         *
+         * These methods are under construction.
+         */
+    }
+
+    @Override
+    public void onClick(View view) {
+        if(view instanceof ImageView) {
+            ImageView image = (ImageView) view;
+            String tempTag = (String) image.getTag();
+            int file = tempTag.charAt(0) - '0';
+            int rank = tempTag.charAt(1) - '0';
+            String currentObj = getSelectedObject();
+
+            if(currentObj != null) {
+                if(isSelected(tempTag))
+                    deselectPiece();
+                int fileSelected = currentObj.charAt(0) - '0';
+                int rankSelected = currentObj.charAt(1) - '0';
+                char pieceSelected = currentObj.charAt(3);
+                movePiece(fileSelected, rankSelected, file, rank);
+                deselectPiece();
+            } else {
+                selectPiece(tempTag);
+            }
+        }
     }
 
     protected void setBackground(int file, int rank, boolean selected) {
@@ -50,13 +111,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 board[file][rank].setBackgroundColor(getResources().getColor(R.color.boardLight));
             }
         }
-    }
-
-    protected boolean isSelected(String tag) {
-        if(selectedObject == null)
-            return false;
-        else
-            return selectedObject.charAt(0) == tag.charAt(0) && selectedObject.charAt(1)== tag.charAt(1);
     }
 
     protected void selectPiece(String tag) {
@@ -76,9 +130,20 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    protected boolean isSelected(String tag) {
+        if(selectedObject == null)
+            return false;
+        else
+            return selectedObject.charAt(0) == tag.charAt(0) && selectedObject.charAt(1)== tag.charAt(1);
+    }
+
     protected void movePiece(int oldFile, int oldRank, int newFile, int newRank) {
         String oldTag = (String) board[oldFile][oldRank].getTag();
         String newTag = (String) board[newFile][newRank].getTag();
+
+        // within the if/else blocks -- is where game.requestFromGUI(input)
+        // will be made. note that the input string will have to be created
+        // using some kind of helper method.
 
         if (oldTag.indexOf(PIECE_BR)>=0) {
             board[oldFile][oldRank].setImageResource(R.drawable.transparent);
@@ -166,29 +231,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
         else if (oldTag.indexOf(PIECE_NO)>=0) {
         } else {
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        if(view instanceof ImageView) {
-            ImageView image = (ImageView) view;
-            String tempTag = (String) image.getTag();
-            int file = tempTag.charAt(0) - '0';
-            int rank = tempTag.charAt(1) - '0';
-            String currentObj = getSelectedObject();
-
-            if(currentObj != null) {
-                if(isSelected(tempTag))
-                    deselectPiece();
-                int fileSelected = currentObj.charAt(0) - '0';
-                int rankSelected = currentObj.charAt(1) - '0';
-                char pieceSelected = currentObj.charAt(3);
-                movePiece(fileSelected, rankSelected, file, rank);
-                deselectPiece();
-            } else {
-                selectPiece(tempTag);
-            }
         }
     }
 
