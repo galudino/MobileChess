@@ -31,6 +31,14 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     private ImageView[][] board = new ImageView[8][8];
     private String selectedObject = null;
 
+    private String oldTag;
+    private String newTag;
+
+    private boolean drawRequested;      // activated by checkbox
+    private boolean drawAccepted;       // activated by opponent's acceptance of other player's draw
+
+    private boolean resignRequested;    // activated by resign button pressed
+
     private Game game;
 
     @Override
@@ -39,8 +47,14 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         setContentView(R.layout.activity_chess);
         initializeChessboard(this);
 
+        oldTag = "";
+        newTag = "";
+
+        drawRequested = false;
+        drawAccepted = false;
+        resignRequested = false;
+
         game = new Game();
-        game.toggleActive();
     }
 
     @Override
@@ -104,9 +118,13 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     }
 
     protected void movePiece(int oldFile, int oldRank, int newFile, int newRank) {
-        String oldTag = (String) board[oldFile][oldRank].getTag();
-        String newTag = (String) board[newFile][newRank].getTag();
+        oldTag = (String) board[oldFile][oldRank].getTag();
+        newTag = (String) board[newFile][newRank].getTag();
 
+        String inputRequest =
+                translateTags(oldTag, newTag, drawRequested, drawAccepted, resignRequested);
+
+        boolean result = game.readInputFromGUI(inputRequest);
 
         // options:
         // translate oldTag to a form "a2 a3"
@@ -129,6 +147,24 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         // is what determines what pieces are moved for the graphical representation,
         // what pieces CAN move, etc. (since we don't have a loop like the CLI version)
 
+        if (result) {
+            moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
+        }
+    }
+
+    private String translateTags(String oldTag,
+                                String newTag,
+                                boolean drawRequested,
+                                boolean drawAccepted,
+                                boolean resignRequested) {
+        String output = "";
+
+
+
+        return output;
+    }
+
+    private void moveGraphicalPieces(int oldFile, int oldRank, int newFile, int newRank) {
         if (oldTag.indexOf(PIECE_BR) >= 0) {
             // set the cell of oldFile, oldRank transparent
             board[oldFile][oldRank].setImageResource(R.drawable.transparent);

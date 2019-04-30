@@ -241,6 +241,25 @@ public final class Game {
 	public String boardToString() {
 		return board.toString();
 	}
+
+	/**
+	 * Receives a string input that represents
+	 *
+	 * @param input from ChessActivity.java, oldTag and newTag Strings are translated
+	 *              into a format like "a1 a2", for example:
+	 *              To move a piece at a1 to a2, oldTag and newTag respectively are:
+	 *              "01WP" and "02WP" -- this is converted to "a1 a2", which is input.
+	 */
+	public boolean readInputFromGUI(String input) {
+		readInput(input);
+
+		if (validMoveInput) {
+			whitesMove = whitesMove ? false : true;
+			return true;
+		}
+
+		return false;
+	}
 	
 	/**
 	 * Begins game loop
