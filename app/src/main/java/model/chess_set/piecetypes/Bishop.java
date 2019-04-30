@@ -1,7 +1,7 @@
 /**
  * Bishop.java
  *
- * Copyright (c) 2019 Gemuele Aludino, Patrick Nogaj.
+ * Copyright (c) 2019 Gemuele Aludino, Patrick Nogaj. 
  * All rights reserved.
  *
  * Rutgers University: School of Arts and Sciences
@@ -12,87 +12,89 @@ package model.chess_set.piecetypes;
 
 import model.PieceType;
 import model.chess_set.Piece;
-import model.chess_set.Board;
+import model.chess_set.Board.Cell;
 import model.game.Position;
 
 /**
- * @version Apr 27, 2019
+ * @version Mar 3, 2019
  * @author gemuelealudino
  * @author patricknogaj
  */
 public final class Bishop extends Piece {
 
-    /**
-     * Parameterized constructor
-     *
-     * @param pieceType the PieceType to assign
-     * @param color     the Color of a Player's PieceSet
-     */
-    public Bishop(PieceType pieceType, PieceType.Color color) {
-        super(color);
+	/**
+	 * Parameterized constructor
+	 * 
+	 * @param pieceType the PieceType to assign
+	 * @param color     the Color of a Player's PieceSet
+	 */
+	public Bishop(PieceType pieceType, PieceType.Color color) {
+		super(color);
 
-        this.pieceType = pieceType.equals(PieceType.BISHOP_R)
-                || pieceType.equals(PieceType.BISHOP_L) ? pieceType : null;
+		this.pieceType = pieceType.equals(PieceType.BISHOP_R)
+				|| pieceType.equals(PieceType.BISHOP_L) ? pieceType : null;
 
-        if (this.pieceType == null) {
-            System.err.println("ERROR: Set this piece to either "
-                    + "PieceType.BISHOP_R or PieceType.BISHOP_L!");
-            identifier += " (invalid)";
-        } else {
-            identifier += "Bishop";
+		if (this.pieceType == null) {
+			System.err.println("ERROR: Set this piece to either "
+					+ "PieceType.BISHOP_R or PieceType.BISHOP_L!");
+			identifier += " (invalid)";
+		} else {
+			identifier += "Bishop";
 
-            identifier += pieceType.equals(PieceType.BISHOP_R) ? " (right)"
-                    : " (left)";
-        }
-    }
+			identifier += pieceType.equals(PieceType.BISHOP_R) ? " (right)"
+					: " (left)";
+		}
+	}
 
-    /* (non-Javadoc)
-     * @see model.chess_set.Piece#isMoveLegal(model.chess_set.Board,
-     * model.game.Position)
-     */
-    @Override
-    public boolean isMoveLegal(Board board, Position pos) {
-        boolean result = true;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see model.chess_set.Piece#isMoveLegal(model.chess_set.Board.Cell[][],
+	 * model.game.Position)
+	 */
+	@Override
+	public boolean isMoveLegal(Cell[][] cell, Position pos) {
+		boolean result = true;
 
-        int thisPosRefFile = this.posRef.getFile();
-        int thisPosRefRank = this.posRef.getRank();
+		if (this.posRef.getRank() == pos.getRank()
+				|| this.posRef.getFile() == pos.getFile()) {
+			result = false;
+		}
 
-        int posRefFile = posRef.getFile();
-        int posRefRank = posRef.getRank();
+		if (Math.abs(this.posRef.getRank() - pos.getRank()) != Math
+				.abs(this.posRef.getFile() - pos.getFile())) {
+			result = false;
+		}
 
-        int deltaFile = Math.abs(thisPosRefFile - posRefFile);
-        int deltaRank = Math.abs(thisPosRefRank - posRefRank);
+		int rowOffset, colOffset;
 
-        result =
-                thisPosRefRank == posRefRank
-                        || thisPosRefFile == posRefFile ?
-                        false : result;
+		if (this.posRef.getFile() < pos.getFile()) {
+			colOffset = 1;
+		} else {
+			colOffset = -1;
+		}
 
-        result = deltaRank != deltaFile ? false : result;
+		if (this.posRef.getRank() < pos.getRank()) {
+			rowOffset = 1;
+		} else {
+			rowOffset = -1;
+		}
 
-        int rowOffset;
-        int colOffset;
+		for (int x = this.posRef.getFile() + colOffset, y = this.posRef.getRank()
+				+ rowOffset; x != pos.getFile(); x += colOffset) {
+			if (cell[x][y].getPiece() != null) {
+				result = false;
+			}
 
-        colOffset = thisPosRefFile < posRefFile ? 1 : -1;
-        rowOffset = thisPosRefRank < posRefRank ? 1 : -1;
+			y += rowOffset;
+		}
 
-        for (int x = thisPosRefFile + colOffset, y = thisPosRefRank + rowOffset;
-             x != posRefFile;
-             x += colOffset) {
-            Piece pieceAtCell =
-                    board.getCell(board.getPosition(x, y)).getPiece();
+		return result;
+	}
 
-            result = pieceAtCell != null ? false : result;
-
-            y += rowOffset;
-        }
-
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + "B";
-    }
+	@Override
+	public String toString() {
+		return super.toString() + "B";
+	}
 
 }
