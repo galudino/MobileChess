@@ -122,9 +122,11 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         newTag = (String) board[newFile][newRank].getTag();
 
         String inputRequest =
-                translateTags(oldTag, newTag, drawRequested, drawAccepted, resignRequested);
+                translateTags(oldFile, oldRank,
+                        newFile, newRank,
+                        drawRequested, drawAccepted, resignRequested);
 
-        boolean result = game.readInputFromGUI(inputRequest);
+        boolean result = game.readInputFromGUI(inputRequest.trim());
 
         // options:
         // translate oldTag to a form "a2 a3"
@@ -152,16 +154,69 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private String translateTags(String oldTag,
-                                String newTag,
+    private String translateTags(int oldFile,
+                                int oldRank,
+                                int newFile,
+                                int newRank,
                                 boolean drawRequested,
                                 boolean drawAccepted,
                                 boolean resignRequested) {
-        String output = "";
+        String drawRequestedString = drawRequested ? "draw?" : "";
+        String drawAcceptedString = drawAccepted ? "draw" : "";
+        String resignRequestedString = resignRequested ? "resign" : "";
 
+        char oFile = intToChar(oldFile);
+        int oRank = oldRank + 1;
 
+        char nFile = intToChar(newFile);
+        int nRank = newRank + 1;
 
-        return output;
+        String special = "";
+        if (drawRequested) {
+            special = drawRequestedString;
+        } else if (drawAccepted) {
+            special = drawAcceptedString;
+        } else if (resignRequested) {
+            special = resignRequestedString;
+        }
+
+        return String.format("%c%d %c%d %s", oFile, oRank, nFile, nRank, special);
+    }
+
+    private char intToChar(int intFile) {
+        char file;
+
+        switch (intFile) {
+            case 0:
+                file = 'a';
+                break;
+            case 1:
+                file = 'b';
+                break;
+            case 2:
+                file = 'c';
+                break;
+            case 3:
+                file = 'd';
+                break;
+            case 4:
+                file = 'e';
+                break;
+            case 5:
+                file = 'f';
+                break;
+            case 6:
+                file = 'g';
+                break;
+            case 7:
+                file = 'h';
+                break;
+            default:
+                file = 'X';
+                break;
+        }
+
+        return file;
     }
 
     private void moveGraphicalPieces(int oldFile, int oldRank, int newFile, int newRank) {
