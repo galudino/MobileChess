@@ -16,21 +16,21 @@ import model.chess_set.Piece;
 
 /**
  * Represents a move within a Chess game, for logging purposes. Instances of
- * Move are created within Board and stored in a List<Move> within Board.
+ * Move are created within Board and stored in a List within Board.
  * 
  * @version Mar 24, 2019
  * @author gemuelealudino
  */
 public class Move {
-	Piece piece;
+	private Piece piece;
 
-	Position startPos;
-	Position endPos;
+	private Position startPos;
+	private Position endPos;
 
-	LocalTime localTime;
+	private LocalTime localTime;
 
-	int moveNumber;
-
+	private int moveNumber;
+	
 	/**
 	 * Parameterized constructor
 	 * 
@@ -74,7 +74,16 @@ public class Move {
 	public Position getEndPosition() {
 		return endPos;
 	}
-
+	
+	/**
+	 * Accessor method to retrieve the LocalTime of a Move
+	 * 
+	 * @return the LocalTime object associated with a Move
+	 */
+	public LocalTime getLocalTime() {
+		return localTime;
+	}
+	
 	@Override
 	public String toString() {
 		return localTime.toString() + "\t" + moveNumber + "\t" + piece

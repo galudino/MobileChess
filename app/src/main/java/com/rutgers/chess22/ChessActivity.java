@@ -40,36 +40,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         initializeChessboard(this);
 
         game = new Game();
-
-        /** UNDER CONSTRUCTION in Game.java
-         *
-         * Use game.requestFromGUI(input)
-         * to make a move.
-         *
-         *
-         * (input is a String) in this format:
-         * "a1 a2"
-         * "a1 a2 draw?"
-         * "a1 a2 q"        or Q, or b, or B, ...
-         * "resign"
-         * "draw"
-         * The move made within the GUI must be translated
-         * into one of the strings above.
-         *
-         * if game.requestFromGUI(input) returns a VALID_MOVE
-         * enum (ReturnCode), then the backend has made the move within Board.java.
-         * Follow through by doing the graphical move for the GUI Piece avatar.
-         *
-         * If there is another ReturnCode enum returned,
-         * let the behavior for the GUI act accordingly.
-         *
-         *
-         * See Game.java:
-         * public boolean requestFromGUI(String input) - this may return an enum ReturnCode instead
-         * private void readInputFromGUI(String input) - this may return an enum ReturnCode instead
-         *
-         * These methods are under construction.
-         */
+        game.toggleActive();
     }
 
     @Override
@@ -125,15 +96,38 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     }
 
     protected boolean isSelected(String tag) {
-        if (selectedObject == null)
+        if (selectedObject == null) {
             return false;
-        else
+        } else {
             return selectedObject.charAt(0) == tag.charAt(0) && selectedObject.charAt(1) == tag.charAt(1);
+        }
     }
 
     protected void movePiece(int oldFile, int oldRank, int newFile, int newRank) {
         String oldTag = (String) board[oldFile][oldRank].getTag();
         String newTag = (String) board[newFile][newRank].getTag();
+
+
+        // options:
+        // translate oldTag to a form "a2 a3"
+        // translate newTag to a form "a2 a3"
+
+        // or:
+        // translate oldTag and newTag to create an array of int[5]
+        // file, rank, newFile, newRank, promo
+
+        // need to create a new start() method in Game.java, maybe
+        // startFromGUI(String oldTag, String newTag)
+        // then translate oldTag and newTag into an array of int like described above.
+
+        // basically creating a custom version of start() -- but
+        // if I can manage to translate oldTag and newTag into something like "a2 a3"
+        // then that's all the work i have to do.
+
+        // the rest is game.java/board.java's job -- and whatever game.java
+        // reports back, from methods like isValidMoveInput(), and isWhitesMove(), etc.
+        // is what determines what pieces are moved for the graphical representation,
+        // what pieces CAN move, etc. (since we don't have a loop like the CLI version)
 
         if (oldTag.indexOf(PIECE_BR) >= 0) {
             // set the cell of oldFile, oldRank transparent

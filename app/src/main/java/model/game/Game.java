@@ -35,73 +35,396 @@ public final class Game {
 	private Position whiteNewPosition;
 	private Position blackPlay;
 	private Position blackNewPosition;
+	
+	private boolean active;
 
+	private boolean whitesMove;
+
+	private boolean willDraw;
+	private boolean willResign;
+
+	private boolean didDraw;
+	private boolean drawGranted;
+	private boolean didResign;
+
+	private boolean validMoveInput;
+	private boolean validMoveInputWithDraw;
+	private boolean validMoveInputWithPromotion;
+	
+	private static final String whiteSpaceRegex = 
+			"[ \\\\t\\\\n\\\\x0b\\\\r\\\\f]";
+	private static final String fileRankRegex = "[a-h][1-8]";
+	private static final String validFileRankRegex = 
+			String.format("%s%s%s", fileRankRegex,
+					whiteSpaceRegex, fileRankRegex);
+
+	private static final String drawRegex = "draw\\?";
+	private static final String validFileRankWithDrawRegex = 
+			String.format("%s%s%s",
+			validFileRankRegex, whiteSpaceRegex, drawRegex);
+
+	private static final String pieceRegex = "[qQbBnNrR]";
+
+	private static final String validFileRankWithPromotion = 
+			String.format("%s%s%s",
+			validFileRankRegex, whiteSpaceRegex, pieceRegex);
+	
 	/**
 	 * Default constructor
 	 */
 	public Game() {
 		board = new Board();
 
-		//white = new Player(PieceType.Color.WHITE);
-		//black = new Player(PieceType.Color.BLACK);
-		
 		white = new Player(PieceType.Color.WHITE, board);
 		black = new Player(PieceType.Color.BLACK, board);
+		
+		active = true;
 
-		//white.assignPieceSet(board);
-		//black.assignPieceSet(board);
+		whitesMove = true;
+
+		willDraw = false;
+		willResign = false;
+
+		didDraw = false;
+		drawGranted = false;
+		didResign = false;
+
+		validMoveInput = false;
+		validMoveInputWithDraw = false;
+		validMoveInputWithPromotion = false;
+	}
+	
+	/**
+	 * Retrieves the last move from the Board's moveList
+	 * 
+	 * @return the Move that describes the last piece to be successfully moved,
+	 * otherwise null if there are no pieces moved
+	 */
+	public Move getLastMove() {
+		return board.getLastMove();
+	}
+	
+	/**
+	 * Retrieves the last kill from the Board's moveList
+	 * 
+	 * @return the Move that describes the last piece to be killed,
+	 * otherwise null if there are no pieces killed
+	 */
+	public Move getLastKill() {
+		return board.getLastKill();
+	}
+	
+	/**
+	 * Mutator to toggle the game's status.
+	 * If false (game not active), active will be switched to true.
+	 * Else (game is current active), active will be switched to false.
+	 */
+	public void toggleActive() {
+		active = active ? false : true;
+	}
+	
+	/**
+	 * Accessor to retrieve status of game
+	 * 
+	 * @return true if game is active, false otherwise
+	 */
+	public boolean isActive() {
+		return active;
+	}
+	
+	/**
+	 * Accessor to determine if it is white player's move, or not
+	 * 
+	 * @return true if white's move, false otherwise
+	 */
+	public boolean isWhitesMove() {
+		return whitesMove;
+	}
+	
+	/**
+	 * Accessor to determine if a player requested a draw to the other player
+	 * 
+	 * @return true if draw requested, false otherwise
+	 */
+	public boolean isWillDraw() {
+		return willDraw;
+	}
+	
+	/**
+	 * Accessor to determine if player requested to resign from the game
+	 * 
+	 * @return true if resign requested, false otherwise
+	 */
+	public boolean isWillResign() {
+		return willResign;
+	}
+	
+	/**
+	 * Accessor to determine if a draw has been mutually agreed upon
+	 * and will be done (willDraw and drawGranted must both be true,
+	 * and the values of those variables are determined during the game)
+	 * 
+	 * @return true if the draw has been agreed upon, false otherwise
+	 */
+	public boolean isDidDraw() {
+		return didDraw;
+	}
+	
+	/**
+	 * Accessor to determine if a draw requested made by one player
+	 * has been accepted by the other player. This is the moment when
+	 * the requestee (recipient of the request) agrees to a draw 
+	 * after it was proposed by the requestee's opponent.
+	 * 
+	 * @return true if drawGranted is true, false otherwise
+	 */
+	public boolean isDrawGranted() {
+		return drawGranted;
+	}
+	
+	/**
+	 * Accessor to determine if a resignation requested made by one player
+	 * has been accepted by the other player. This is the moment when the
+	 * requestee (recipient of the request) agrees to let their opponent
+	 * resign from the game.
+	 * 
+	 * @return true if didResign is true, false otherwise
+	 */
+	public boolean isDidResign() {
+		return didResign;
+	}
+	
+	/**
+	 * Accessor to determine if a move request results in a valid move and was
+	 * completed by a player.
+	 * 
+	 * @return true if a valid move was made by a player, false otherwise
+	 */
+	public boolean isValidMoveInput() {
+		return validMoveInput;
+	}
+	
+	/**
+	 * Accessor to determine if a move request results in a valid move and was
+	 * completed by a player -- but has made a request to their opponent
+	 * to end the game by draw.
+	 * 
+	 * @return true if validMoveInputWithDraw is true, false otherwise
+	 */
+	public boolean isValidMoveInputWithDraw() {
+		return validMoveInputWithDraw;
+	}
+	
+	/**
+	 * Accessor to determine if a move request results in a valid move and was
+	 * completed by a player -- but has made a request to promote their pawn
+	 * Piece to a Queen, Bishop, Knight, or Rook.
+	 * 
+	 * @return true if validMoveInputWithPromotion is true, false otherwise
+	 */
+	public boolean isValidMoveInputWithPromotion() {
+		return validMoveInputWithPromotion;
+	}
+	
+	/**
+	 * Prints the current state of the move list
+	 */
+	public void printMoveLog() {
+		board.printMoveLog();
 	}
 
 	/**
-	 * Piece from the white PieceSet will be moved to a new Cell on the Board
+	 * Returns the current state of the Game as an ASCII chess board
 	 * 
-	 * @param file    x axis coordinate of a requested Piece (0-7 only)
-	 * @param rank    y axis coordinate of a requested Piece (0-7 only)
-	 * @param newFile x axis coordinate of the desired move (0-7 only)
-	 * @param newRank y axis coordinate of the desired move (0-7 only)
-	 * @param promo   integer that represents the piece to promote to (if != -1)
-	 * 
-	 * @return true if move executed successfully, false otherwise
+	 * @return string representation of the Game's Board instance
 	 */
-	private boolean whitePlayMove(int file, int rank, int newFile, int newRank,
-			int promo) {
-		whitePlay = new Position(file, rank);
-		whiteNewPosition = new Position(newFile, newRank);
-
-		//return white.playMove(board, whitePlay, whiteNewPosition, promo);
-		return white.playMove(whitePlay, whiteNewPosition, promo);
+	public String boardToString() {
+		return board.toString();
 	}
-
+	
 	/**
-	 * Piece from the black PieceSet will be moved to a new Cell on the Board
-	 * 
-	 * @param file    x axis coordinate of a requested Piece (0-7 only)
-	 * @param rank    y axis coordinate of a requested Piece (0-7 only)
-	 * @param newFile x axis coordinate of the desired move (0-7 only)
-	 * @param newRank y axis coordinate of the desired move (0-7 only)
-	 * @param promo   integer that represents the piece to promote to (if != -1)
-	 * 
-	 * @return true if move executed successfully, false otherwise
+	 * Begins game loop
 	 */
-	private boolean blackPlayMove(int file, int rank, int newFile, int newRank,
-			int promo) {
-		blackPlay = new Position(file, rank);
-		blackNewPosition = new Position(newFile, newRank);
+	public void start() {				
+		Scanner scan = new Scanner(System.in);
+		String input = "";
 
-		//return black.playMove(board, blackPlay, blackNewPosition, promo);
-		return black.playMove(blackPlay, blackNewPosition, promo);
+		System.out.println(board);
+				
+		while (active) {
+			String prompt = "";
+
+			validMoveInput = false;
+			validMoveInputWithDraw = false;
+			validMoveInputWithPromotion = false;
+
+			drawGranted = false;
+			willResign = false;
+			
+			do {
+				validMoveInput = false;
+
+				prompt = whitesMove ? "White's " : "Black's ";
+
+				System.out.print(prompt + "move: ");
+				input = scan.nextLine();
+				System.out.println();
+				
+				readInput(input);
+			} while (validMoveInput == false);
+
+			whitesMove = whitesMove ? false : true;
+
+			System.out.println(boardToString());
+		}
+
+		scan.close();
 	}
+	
+	/**
+	 * Starts a game from a String inputFilePath to an existing file.
+	 * Precondition: File to inputFilePath must exist.
+	 * 
+	 * @param inputFilePath String representing the input file to be read
+	 * @throws IOException On nonexistent inputFilePath
+	 * 
+	 * @return true if game can continue, false otherwise
+	 */
+	public void startFromFile(String inputFilePath) throws IOException {	
+		File inputFile = new File(inputFilePath);
+		
+		if (inputFile.exists() == false) {
+			System.err.println("Error: " + inputFilePath + " does not exist.");
+			System.exit(0);
+		}
+		
+		FileReader fileReader = new FileReader(inputFile);
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		String input = "";
 
+		System.out.println(board);
+		
+		while (active) {
+			//String prompt = "";
+			
+			validMoveInput = false;
+			validMoveInputWithDraw = false;
+			validMoveInputWithPromotion = false;
+
+			drawGranted = false;
+			willResign = false;
+
+			do {
+				validMoveInput = false;
+
+				input = bufferedReader.readLine();
+				System.out.println();
+				
+				if (input == null) {
+					bufferedReader.close();
+					fileReader.close();
+					start();
+					break;
+				}
+				
+				readInput(input);
+			} while (validMoveInput == false);
+
+			whitesMove = whitesMove ? false : true;
+
+			System.out.println(boardToString());
+
+			/**
+			 * DIAGNOSTICS
+			 */
+			printMoveLog();
+
+			if (whitesMove == false) {
+				white.printPieceSet();
+			} else {
+				black.printPieceSet();
+			}
+		}
+		
+		bufferedReader.close();
+		fileReader.close();
+	}
+	
+	public void readInput(String input) {
+		int[] fileRankArray = null;
+		String output = "";
+		
+		validMoveInput = input.matches(validFileRankRegex);
+		validMoveInputWithDraw = input
+				.matches(validFileRankWithDrawRegex);
+		validMoveInputWithPromotion = input
+				.matches(validFileRankWithPromotion);
+
+		drawGranted = willDraw && input.equals("draw");
+		willResign = input.equals("resign");
+
+		if (validMoveInput) {
+			willDraw = false;
+			fileRankArray = getFileRankArray(input);
+		} else if (validMoveInputWithPromotion) {
+			willDraw = false;
+			fileRankArray = getFileRankArray(input);
+		} else if (validMoveInputWithDraw) {
+			willDraw = true;
+			fileRankArray = getFileRankArray(input);
+		} else if (drawGranted) {
+			didDraw = true;
+			output = "draw";
+		} else if (willResign) {
+			didResign = true;
+			output = whitesMove ? "Black wins" : "White wins";
+		} else {
+			validMoveInput = false;
+			output = "Invalid input, try again\n";
+		}
+
+		if (validMoveInput || validMoveInputWithPromotion
+				|| validMoveInputWithDraw) {
+			int file = -1;
+			int rank = -1;
+			int newFile = -1;
+			int newRank = -1;
+			int promo = -1;
+
+			file = fileRankArray[0];
+			rank = fileRankArray[1];
+			newFile = fileRankArray[2];
+			newRank = fileRankArray[3];
+			promo = fileRankArray[4];
+
+			if (whitesMove) {
+				validMoveInput = whitePlayMove(file, rank, newFile,
+						newRank, promo);
+			} else {
+				validMoveInput = blackPlayMove(file, rank, newFile,
+						newRank, promo);
+			}
+
+			output = validMoveInput ? "" : "Illegal move, try again";
+		}
+
+		System.out.println(output);
+
+		if (didDraw || didResign) {
+			System.exit(0);
+		}
+	}
+	
 	/**
 	 * Parses a line of input into an integer array of a Piece's current file
 	 * and rank, and the desired file and rank for a new Position
 	 * 
 	 * @param input a line of input
+	 * 
 	 * @return an integer array representing a Piece's current position and the
 	 *         desired position to move to
 	 */
 	private int[] getFileRankArray(String input) {
-		final String fileRankRegex = "[a-h][1-8]";
 		//final String pieceRegex = "[qQbBnNrR]";
 
 		String fileRankStr = "";
@@ -213,320 +536,42 @@ public final class Game {
 		parse.close();
 		return result;
 	}
-
-	/**
-	 * Begins game loop
-	 */
-	public void start() {
-		int[] fileRankArray = null;
-
-		final String whiteSpaceRegex = "[ \\\\t\\\\n\\\\x0b\\\\r\\\\f]";
-		final String fileRankRegex = "[a-h][1-8]";
-		final String validFileRankRegex = String.format("%s%s%s", fileRankRegex,
-				whiteSpaceRegex, fileRankRegex);
-
-		final String drawRegex = "draw\\?";
-		final String validFileRankWithDrawRegex = String.format("%s%s%s",
-				validFileRankRegex, whiteSpaceRegex, drawRegex);
-
-		final String pieceRegex = "[qQbBnNrR]";
-
-		final String validFileRankWithPromotion = String.format("%s%s%s",
-				validFileRankRegex, whiteSpaceRegex, pieceRegex);
-
-		boolean active = true;
-
-		boolean whitesMove = true;
-
-		boolean willDraw = false;
-		boolean willResign = false;
-
-		boolean didDraw = false;
-		boolean drawGranted = false;
-		boolean didResign = false;
-
-		boolean validMoveInput = false;
-		boolean validMoveInputWithDraw = false;
-		boolean validMoveInputWithPromotion = false;
-
-		Scanner scan = new Scanner(System.in);
-		String input = "";
-
-		System.out.println(board);
-
-		while (active) {
-			String prompt = "";
-			String output = "";
-
-			validMoveInput = false;
-			validMoveInputWithDraw = false;
-			validMoveInputWithPromotion = false;
-
-			drawGranted = false;
-			willResign = false;
-
-			do {
-				validMoveInput = false;
-
-				prompt = whitesMove ? "White's " : "Black's ";
-
-				System.out.print(prompt + "move: ");
-				input = scan.nextLine();
-				System.out.println();
-
-				validMoveInput = input.matches(validFileRankRegex);
-				validMoveInputWithDraw = input
-						.matches(validFileRankWithDrawRegex);
-				validMoveInputWithPromotion = input
-						.matches(validFileRankWithPromotion);
-
-				drawGranted = willDraw && input.equals("draw");
-				willResign = input.equals("resign");
-
-				if (validMoveInput) {
-					willDraw = false;
-					fileRankArray = getFileRankArray(input);
-				} else if (validMoveInputWithPromotion) {
-					willDraw = false;
-					fileRankArray = getFileRankArray(input);
-				} else if (validMoveInputWithDraw) {
-					willDraw = true;
-					fileRankArray = getFileRankArray(input);
-				} else if (drawGranted) {
-					didDraw = true;
-					output = "draw";
-				} else if (willResign) {
-					didResign = true;
-					output = whitesMove ? "Black wins" : "White wins";
-				} else {
-					validMoveInput = false;
-					output = "Invalid input, try again\n";
-				}
-
-				if (validMoveInput || validMoveInputWithPromotion
-						|| validMoveInputWithDraw) {
-					int file = -1;
-					int rank = -1;
-					int newFile = -1;
-					int newRank = -1;
-					int promo = -1;
-
-					file = fileRankArray[0];
-					rank = fileRankArray[1];
-					newFile = fileRankArray[2];
-					newRank = fileRankArray[3];
-					promo = fileRankArray[4];
-
-					if (whitesMove) {
-						validMoveInput = whitePlayMove(file, rank, newFile,
-								newRank, promo);
-					} else {
-						validMoveInput = blackPlayMove(file, rank, newFile,
-								newRank, promo);
-					}
-
-					output = validMoveInput ? "" : "Illegal move, try again";
-				}
-
-				System.out.println(output);
-
-				if (didDraw || didResign) {
-					System.exit(0);
-				}
-			} while (validMoveInput == false);
-
-			whitesMove = whitesMove ? false : true;
-
-			System.out.println(boardToString());
-
-			/**
-			 * DIAGNOSTICS
-			 */
-			//printMoveLog();
-
-			//if (whitesMove == false) {
-			//	white.printPieceSet();
-			//} else {
-			//	black.printPieceSet();
-			//}
-		}
-
-		scan.close();
-	}
 	
 	/**
-	 * Starts a game from a String inputFilePath to an existing file.
-	 * Precondition: File to inputFilePath must exist.
+	 * Piece from the white PieceSet will be moved to a new Cell on the Board
 	 * 
-	 * @param inputFilePath String representing the input file to be read
-	 * @throws IOException On nonexistent inputFilePath
-	 * @return true if game can continue, false otherwise
+	 * @param file    x axis coordinate of a requested Piece (0-7 only)
+	 * @param rank    y axis coordinate of a requested Piece (0-7 only)
+	 * @param newFile x axis coordinate of the desired move (0-7 only)
+	 * @param newRank y axis coordinate of the desired move (0-7 only)
+	 * @param promo   integer that represents the piece to promote to (if != -1)
+	 * 
+	 * @return true if move executed successfully, false otherwise
 	 */
-	public void startFromFile(String inputFilePath) throws IOException {
-		int[] fileRankArray = null;
+	private boolean whitePlayMove(int file, int rank, int newFile, int newRank,
+			int promo) {
+		whitePlay = new Position(file, rank);
+		whiteNewPosition = new Position(newFile, newRank);
 
-		final String whiteSpaceRegex = "[ \\\\t\\\\n\\\\x0b\\\\r\\\\f]";
-		final String fileRankRegex = "[a-h][1-8]";
-		final String validFileRankRegex = String.format("%s%s%s", fileRankRegex,
-				whiteSpaceRegex, fileRankRegex);
-
-		final String drawRegex = "draw\\?";
-		final String validFileRankWithDrawRegex = String.format("%s%s%s",
-				validFileRankRegex, whiteSpaceRegex, drawRegex);
-
-		final String pieceRegex = "[qQbBnNrR]";
-
-		final String validFileRankWithPromotion = String.format("%s%s%s",
-				validFileRankRegex, whiteSpaceRegex, pieceRegex);
-
-		boolean active = true;
-
-		boolean whitesMove = true;
-
-		boolean willDraw = false;
-		boolean willResign = false;
-
-		boolean didDraw = false;
-		boolean drawGranted = false;
-		boolean didResign = false;
-
-		boolean validMoveInput = false;
-		boolean validMoveInputWithDraw = false;
-		boolean validMoveInputWithPromotion = false;
-
-		File inputFile = new File(inputFilePath);
-		
-		if (inputFile.exists() == false) {
-			System.err.println("Error: " + inputFilePath + " does not exist.");
-			System.exit(0);
-		}
-		
-		FileReader fileReader = new FileReader(inputFile);
-		BufferedReader bufferedReader = new BufferedReader(fileReader);
-		String input = "";
-
-		System.out.println(board);
-
-		while (active) {
-			//String prompt = "";
-			String output = "";
-
-			validMoveInput = false;
-			validMoveInputWithDraw = false;
-			validMoveInputWithPromotion = false;
-
-			drawGranted = false;
-			willResign = false;
-
-			do {
-				validMoveInput = false;
-
-				//prompt = whitesMove ? "White's " : "Black's ";
-
-				//System.out.print(prompt + "move: ");
-				input = bufferedReader.readLine();
-				System.out.println();
-				
-				if (input == null) {
-					start();
-					break;
-				}
-
-				validMoveInput = input.matches(validFileRankRegex);
-				validMoveInputWithDraw = input
-						.matches(validFileRankWithDrawRegex);
-				validMoveInputWithPromotion = input
-						.matches(validFileRankWithPromotion);
-
-				drawGranted = willDraw && input.equals("draw");
-				willResign = input.equals("resign");
-
-				if (validMoveInput) {
-					willDraw = false;
-					fileRankArray = getFileRankArray(input);
-				} else if (validMoveInputWithPromotion) {
-					willDraw = false;
-					fileRankArray = getFileRankArray(input);
-				} else if (validMoveInputWithDraw) {
-					willDraw = true;
-					fileRankArray = getFileRankArray(input);
-				} else if (drawGranted) {
-					didDraw = true;
-					output = "draw";
-				} else if (willResign) {
-					didResign = true;
-					output = whitesMove ? "Black wins" : "White wins";
-				} else {
-					validMoveInput = false;
-					output = "Invalid input, try again\n";
-				}
-
-				if (validMoveInput || validMoveInputWithPromotion
-						|| validMoveInputWithDraw) {
-					int file = -1;
-					int rank = -1;
-					int newFile = -1;
-					int newRank = -1;
-					int promo = -1;
-
-					file = fileRankArray[0];
-					rank = fileRankArray[1];
-					newFile = fileRankArray[2];
-					newRank = fileRankArray[3];
-					promo = fileRankArray[4];
-
-					if (whitesMove) {
-						validMoveInput = whitePlayMove(file, rank, newFile,
-								newRank, promo);
-					} else {
-						validMoveInput = blackPlayMove(file, rank, newFile,
-								newRank, promo);
-					}
-
-					output = validMoveInput ? "" : "Illegal move, try again";
-				}
-
-				System.out.println(output);
-
-				if (didDraw || didResign) {
-					System.exit(0);
-				}
-				
-			} while (validMoveInput == false);
-
-			whitesMove = whitesMove ? false : true;
-
-			System.out.println(boardToString());
-
-			/**
-			 * DIAGNOSTICS
-			 */
-			printMoveLog();
-
-			if (whitesMove == false) {
-				white.printPieceSet();
-			} else {
-				black.printPieceSet();
-			}
-		}
-		
-		bufferedReader.close();
-		fileReader.close();
+		return white.playMove(whitePlay, whiteNewPosition, promo);
 	}
 
 	/**
-	 * Prints the current state of the move list
-	 */
-	public void printMoveLog() {
-		board.printMoveLog();
-	}
-
-	/**
-	 * Returns the current state of the Game as an ASCII chess board
+	 * Piece from the black PieceSet will be moved to a new Cell on the Board
 	 * 
-	 * @return string representation of the Game's Board instance
+	 * @param file    x axis coordinate of a requested Piece (0-7 only)
+	 * @param rank    y axis coordinate of a requested Piece (0-7 only)
+	 * @param newFile x axis coordinate of the desired move (0-7 only)
+	 * @param newRank y axis coordinate of the desired move (0-7 only)
+	 * @param promo   integer that represents the piece to promote to (if != -1)
+	 * 
+	 * @return true if move executed successfully, false otherwise
 	 */
-	public String boardToString() {
-		return board.toString();
+	private boolean blackPlayMove(int file, int rank, int newFile, int newRank,
+			int promo) {
+		blackPlay = new Position(file, rank);
+		blackNewPosition = new Position(newFile, newRank);
+
+		return black.playMove(blackPlay, blackNewPosition, promo);
 	}
 }

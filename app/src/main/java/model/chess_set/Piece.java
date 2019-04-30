@@ -32,6 +32,8 @@ public abstract class Piece {
 	protected String identifier;
 	protected Position posRef;				// ref to Position object in a Cell
 
+	boolean alive;
+	
 	/**
 	 * Parameterized constructor
 	 * 
@@ -41,6 +43,35 @@ public abstract class Piece {
 		this.color = color;
 		posRef = null;
 		identifier = color.equals(PieceType.Color.WHITE) ? "White " : "Black ";
+		
+		alive = false;
+	}
+	
+	/**
+	 * Makes a piece "alive" and returns the result of the alive field
+	 * 
+	 * @return value of the alive field
+	 */
+	public boolean makeAlive() {
+		return alive == false ? alive = true : alive;
+	}
+	
+	/**
+	 * If a Piece is alive, it is made dead -- otherwise if dead, it remains so.
+	 * 
+	 * @return value of the alive field
+	 */
+	public boolean makeDead() {
+		return alive == true ? alive = false : alive;
+	}
+	
+	/**
+	 * Determines if a Piece is active (on the Board), or not
+	 * 
+	 * @return true if alive, false otherwise
+	 */
+	public boolean isAlive() {
+		return alive;
 	}
 
 	/**

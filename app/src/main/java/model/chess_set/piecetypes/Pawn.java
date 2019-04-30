@@ -154,10 +154,13 @@ public final class Pawn extends Piece {
 											&& pieceEndPos.getRank() == 4) {
 										if (Math.abs(pieceStartPos.getRank()
 												- pieceEndPos.getRank()) == 2) {
+											Piece taken = cell[pieceEndPos.getFile()][pieceEndPos.getRank()].getPiece();
+											taken.makeDead();
+											
 											cell[pieceEndPos
 													.getFile()][pieceEndPos
 															.getRank()]
-																	.setPieceNull(
+																	.setPieceNullAtPosition(
 																			pieceEndPos
 																					.getFile(),
 																			pieceEndPos
@@ -231,10 +234,12 @@ public final class Pawn extends Piece {
 											&& pieceEndPos.getRank() == 3) {
 										if (Math.abs(pieceStartPos.getRank()
 												- pieceEndPos.getRank()) == 2) {
+											Piece taken = cell[pieceEndPos.getFile()][pieceEndPos.getRank()].getPiece();
+											taken.makeDead();
 											cell[pieceEndPos
 													.getFile()][pieceEndPos
 															.getRank()]
-																	.setPieceNull(
+																	.setPieceNullAtPosition(
 																			pieceEndPos
 																					.getFile(),
 																			pieceEndPos

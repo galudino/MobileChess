@@ -2,6 +2,9 @@ package com.rutgers.chess22;
 
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import model.game.Game;
 
 import static org.junit.Assert.*;
@@ -13,11 +16,10 @@ import static org.junit.Assert.*;
  */
 public class ExampleUnitTest {
 
-    public static void main(String[] args) {
+    public static final String FILEPATH = "testgame.txt";
 
+    public static void main(String[] args) throws IOException {
         Game game = new Game();
-
-        game.start();
     }
 
     @Test

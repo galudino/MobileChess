@@ -70,7 +70,7 @@ public final class Position implements Comparable<Position> {
 	public int getRank() {
 		return rank;
 	}
-
+	
 	@Override
 	public boolean equals(Object o) {
 		boolean result = false;

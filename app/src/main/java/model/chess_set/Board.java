@@ -60,15 +60,6 @@ public final class Board {
 		}
 
 		/**
-		 * Mutator method to assign a Piece to a Cell
-		 * 
-		 * @param piece the Piece to assign to a Cell
-		 */
-		public void setPiece(Piece piece) {
-			this.pieceRef = piece;
-		}
-
-		/**
 		 * Accessor method to retrieve the Position object within a Cell
 		 * 
 		 * @return the Position object associated with a Cell
@@ -83,7 +74,42 @@ public final class Board {
 		 * @return the most recent Move that was logged by Board
 		 */
 		public Move getLastMove() {
-			return moveList.get(moveList.size() - 1);
+			if (moveList.isEmpty()) {
+				return null;
+			}
+			
+			boolean nullValue = true;
+			
+			Move lastMove = null;
+			int i = 1;
+			
+			/**
+			 * Within the moveList, kills are also stored.
+			 * Kills are denoted by:
+			 * 
+			 * Move # is (-1)
+			 * endPosition is null
+			 * 
+			 * We want the last move performed,
+			 * disregarding the kill (if there was one).
+			 */
+			do {
+				lastMove = moveList.get(moveList.size() - i);
+				
+				if (lastMove.getEndPosition() == null) {
+					nullValue = true;
+					++i;
+				} else {
+					nullValue = false;
+				}
+				
+				if (i > moveList.size()) {
+					break;
+				}
+			} while (nullValue);
+			
+			
+			return lastMove;
 		}
 
 		/**
@@ -92,8 +118,8 @@ public final class Board {
 		 * @param file the file to retrieve
 		 * @param rank the rank to retrieve
 		 */
-		public void setPieceNull(int file, int rank) {
-			loc = new Position(file, rank);
+		public void setPieceNullAtPosition(int file, int rank) {
+			//loc = new Position(file, rank);
 			pieceRef = null;
 		}
 
@@ -113,7 +139,8 @@ public final class Board {
 
 	private List<Move> moveList;
 	private int moveCounter;
-
+	private int killCounter;
+	
 	private PieceSet whiteSet;
 	private PieceSet blackSet;
 
@@ -140,6 +167,9 @@ public final class Board {
 		assignBlackPieces();
 
 		moveList = new ArrayList<Move>();
+		
+		moveCounter = 0;
+		killCounter = 0;
 
 		kingMoves = new Position[MAX_LENGTH_WIDTH];
 		kingSafe = true;
@@ -173,6 +203,95 @@ public final class Board {
 	Cell getCell(Position pos) {
 		return cell[pos.getFile()][pos.getRank()];
 	}
+	
+	/**
+	 * Accessor method to retrieve the last Move executed during gameplay
+	 * 
+	 * @return the most recent Move that was logged by Board
+	 */
+	public Move getLastMove() {
+		if (moveList.isEmpty()) {
+			return null;
+		}
+		
+		boolean nullValue = true;
+		
+		Move lastMove = null;
+		int i = 1;
+		
+		/**
+		 * Within the moveList, kills are also stored.
+		 * Kills are denoted by:
+		 * 
+		 * Move # is (-1)
+		 * endPosition is null
+		 * 
+		 * We want the last move performed,
+		 * disregarding the kill (if there was one).
+		 */
+		do {
+			lastMove = moveList.get(moveList.size() - i);
+			
+			if (lastMove.getEndPosition() == null) {
+				nullValue = true;
+				++i;
+			} else {
+				nullValue = false;
+			}
+			
+			if (i > moveList.size()) {
+				break;
+			}
+		} while (nullValue);
+		
+		
+		return lastMove;
+	}
+	
+	/**
+	 * Retrieves the last kill from the moveList
+	 * 
+	 * @return the Move that describes the last piece to be killed,
+	 * otherwise null if there are no pieces killed
+	 */
+	public Move getLastKill() {
+		if (moveList.isEmpty()) {
+			return null;
+		}
+		
+		boolean nonNullValue = false;
+		
+		Move lastKill = null;
+		int i = 1;
+		
+		/**
+		 * Within the moveList, kills are also stored.
+		 * Kills are denoted by:
+		 * 
+		 * Move # is (-1)
+		 * endPosition is null
+		 * 
+		 * We want the last kill performed,
+		 * disregarding any normal moves logged.
+		 */
+		do {			
+			lastKill = moveList.get(moveList.size() - i);
+			
+			if (lastKill.getEndPosition() != null) {
+				nonNullValue = true;
+				++i;
+			} else {
+				nonNullValue = false;
+			}
+			
+			if (i > moveList.size()) {
+				break;
+			}
+		} while (nonNullValue);
+		
+		
+		return lastKill;
+	}
 
 	/**
 	 * Requested Piece will be moved to a Cell corresponding to the file and
@@ -193,7 +312,7 @@ public final class Board {
 		Cell oldPositionCell = getCell(piece.posRef);
 		Cell newPositionCell = getCell(newPosition);
 
-		boolean isLegalMove = piece.isMoveLegal(cell, newPosition);
+		boolean pieceMoveLegal = piece.isMoveLegal(cell, newPosition);
 
 		King king = null;
 
@@ -215,22 +334,22 @@ public final class Board {
 					if (newPosition.equals(kingMoves[i])
 							&& isKingSafe(king, kingMoves[i])) {
 						kingChecked = false;
-						isLegalMove = true;
+						pieceMoveLegal = true;
 						result = true;
 						
 						break;
 					} else {
-						isLegalMove = false;
+						pieceMoveLegal = false;
 						result = false;
 					}
 				}
 			} else {
-				isLegalMove = false;
+				pieceMoveLegal = false;
 				result = false;
 			}
 		}
 
-		if (isLegalMove) {
+		if (pieceMoveLegal) {
 			Piece other = newPositionCell.pieceRef;
 			boolean pieceFoundAtNewPosition = other != null;
 
@@ -242,6 +361,7 @@ public final class Board {
 					// another piece.
 					result = false;
 				} else {
+					other.makeDead();
 					// At this point, a "piece" is taken.
 					newPositionCell.pieceRef = null;
 
@@ -296,64 +416,25 @@ public final class Board {
 					// This statement affects the internal position
 					// data within a Piece object.
 					piece.posRef = newPosition;
-					// piece.move(newPosition) // why use this? pos is
-					// protected.
-
-					// System.out.println(this);
-					// need to figure out how to prompt user to enter a
-					// valid legal move to make sure King is safe...
 				} else {
-
-					/*
-					 * System.out.println("KING IS NOT SAFE???");
-					 * 
-					 * boolean kingHasValidMoves = hasValidMoves(k);
-					 * 
-					 * if (kingHasValidMoves) { kingChecked = true;
-					 * 
-					 * for(int i = 0; i < kingMoves.length; i++) { if
-					 * (newPosition.equals(kingMoves[i])) { found = true; break;
-					 * } }
-					 * 
-					 * } else { String output = "";
-					 * System.out.println("Checkmate"); output = k.isWhite() ?
-					 * "Black " : "White "; System.out.println(output +
-					 * " wins"); System.exit(0); }
-					 */
-
 					return false;
 				}
-
-				// This statement nullifies any reference to a Piece
-				// for this Cell object. (Next line: piece will be
-				// reassigned
-				// to the newPositionCell.piece field).
-				// oldPositionCell.piece = null;
-
-				// This statement affects what Pieces print
-				// at which cells when board.toString() is called.
-				// newPositionCell.piece = piece;
-
-				// This statement affects the internal position
-				// data within a Piece object.
-				// piece.pos = newPosition;
-				// piece.move(newPosition) // why use this? pos is
-				// protected.
-
-				// System.out.println(this);
-				// need to figure out how to prompt user to enter a valid
-				// legal move to make sure King is safe...
 			}
-
-			// System.out.println(k + "\nFILE: " + k.pos.getFile() +
-			// "\nRANK: " + k.pos.getRank());
-			// System.out.println(k.hasValidMoves(cell, k.pos));
 
 			++moveCounter;
 
 			Move newestMove = new Move(piece, oldPositionCell.loc, piece.posRef,
 					moveCounter);
 			moveList.add(newestMove);
+			
+			
+			if (other != null) {
+				if (other.isAlive() == false) {
+					--killCounter;
+					Move death = new Move(other, piece.posRef, null, killCounter);
+					moveList.add(death);
+				}
+			}
 		}
 
 		if (canCheck(piece)) {
@@ -526,66 +607,82 @@ public final class Board {
 	 */
 	private void assignWhitePieces() {
 		Piece king = whiteSet.getPieceByType(PieceType.KING);
+		king.alive = true;
 		king.posRef = cell[4][0].loc;
 		cell[4][0].pieceRef = king;
 
 		Piece queen = whiteSet.getPieceByType(PieceType.QUEEN);
+		queen.alive = true;
 		queen.posRef = cell[3][0].loc;
 		cell[3][0].pieceRef = queen;
 
 		Piece bishop_r = whiteSet.getPieceByType(PieceType.BISHOP_R);
+		bishop_r.alive = true;
 		bishop_r.posRef = cell[5][0].loc;
 		cell[5][0].pieceRef = bishop_r;
 
 		Piece bishop_l = whiteSet.getPieceByType(PieceType.BISHOP_L);
+		bishop_l.alive = true;
 		bishop_l.posRef = cell[2][0].loc;
 		cell[2][0].pieceRef = bishop_l;
 
 		Piece knight_r = whiteSet.getPieceByType(PieceType.KNIGHT_R);
+		knight_r.alive = true;
 		knight_r.posRef = cell[6][0].loc;
 		cell[6][0].pieceRef = knight_r;
 
 		Piece knight_l = whiteSet.getPieceByType(PieceType.KNIGHT_L);
+		knight_l.alive = true;
 		knight_l.posRef = cell[1][0].loc;
 		cell[1][0].pieceRef = knight_r;
 
 		Piece rook_r = whiteSet.getPieceByType(PieceType.ROOK_R);
+		rook_r.alive = true;
 		rook_r.posRef = cell[7][0].loc;
 		cell[7][0].pieceRef = rook_r;
 
 		Piece rook_l = whiteSet.getPieceByType(PieceType.ROOK_L);
+		rook_l.alive = true;
 		rook_l.posRef = cell[0][0].loc;
 		cell[0][0].pieceRef = rook_l;
 
 		Piece pawn_0 = whiteSet.getPieceByType(PieceType.PAWN_0);
+		pawn_0.alive = true;
 		pawn_0.posRef = cell[0][1].loc;
 		cell[0][1].pieceRef = pawn_0;
 
 		Piece pawn_1 = whiteSet.getPieceByType(PieceType.PAWN_1);
+		pawn_1.alive = true;
 		pawn_1.posRef = cell[1][1].loc;
 		cell[1][1].pieceRef = pawn_1;
 
 		Piece pawn_2 = whiteSet.getPieceByType(PieceType.PAWN_2);
+		pawn_2.alive = true;
 		pawn_2.posRef = cell[2][1].loc;
 		cell[2][1].pieceRef = pawn_2;
 
 		Piece pawn_3 = whiteSet.getPieceByType(PieceType.PAWN_3);
+		pawn_3.alive = true;
 		pawn_3.posRef = cell[3][1].loc;
 		cell[3][1].pieceRef = pawn_3;
 
 		Piece pawn_4 = whiteSet.getPieceByType(PieceType.PAWN_4);
+		pawn_4.alive = true;
 		pawn_4.posRef = cell[4][1].loc;
 		cell[4][1].pieceRef = pawn_4;
 
 		Piece pawn_5 = whiteSet.getPieceByType(PieceType.PAWN_5);
+		pawn_5.alive = true;
 		pawn_5.posRef = cell[5][1].loc;
 		cell[5][1].pieceRef = pawn_5;
 
 		Piece pawn_6 = whiteSet.getPieceByType(PieceType.PAWN_6);
+		pawn_6.alive = true;
 		pawn_6.posRef = cell[6][1].loc;
 		cell[6][1].pieceRef = pawn_6;
 
 		Piece pawn_7 = whiteSet.getPieceByType(PieceType.PAWN_7);
+		pawn_7.alive = true;
 		pawn_7.posRef = cell[7][1].loc;
 		cell[7][1].pieceRef = pawn_7;
 	}
@@ -596,66 +693,82 @@ public final class Board {
 	 */
 	private void assignBlackPieces() {
 		Piece king = blackSet.getPieceByType(PieceType.KING);
+		king.alive = true;
 		king.posRef = cell[4][7].loc;
 		cell[4][7].pieceRef = king;
 
 		Piece queen = blackSet.getPieceByType(PieceType.QUEEN);
+		queen.alive = true;
 		queen.posRef = cell[3][7].loc;
 		cell[3][7].pieceRef = queen;
 
 		Piece bishop_r = blackSet.getPieceByType(PieceType.BISHOP_R);
+		bishop_r.alive = true;
 		bishop_r.posRef = cell[5][7].loc;
 		cell[5][7].pieceRef = bishop_r;
 
 		Piece bishop_l = blackSet.getPieceByType(PieceType.BISHOP_L);
+		bishop_l.alive = true;
 		bishop_l.posRef = cell[2][7].loc;
 		cell[2][7].pieceRef = bishop_l;
 
 		Piece knight_r = blackSet.getPieceByType(PieceType.KNIGHT_R);
+		knight_r.alive = true;
 		knight_r.posRef = cell[6][7].loc;
 		cell[6][7].pieceRef = knight_r;
 
 		Piece knight_l = blackSet.getPieceByType(PieceType.KNIGHT_L);
+		knight_l.alive = true;
 		knight_l.posRef = cell[1][7].loc;
 		cell[1][7].pieceRef = knight_r;
 
 		Piece rook_r = blackSet.getPieceByType(PieceType.ROOK_R);
+		rook_r.alive = true;
 		rook_r.posRef = cell[7][7].loc;
 		cell[7][7].pieceRef = rook_r;
 
 		Piece rook_l = blackSet.getPieceByType(PieceType.ROOK_L);
+		rook_l.alive = true;
 		rook_l.posRef = cell[0][7].loc;
 		cell[0][7].pieceRef = rook_l;
 
 		Piece pawn_0 = blackSet.getPieceByType(PieceType.PAWN_0);
+		pawn_0.alive = true;
 		pawn_0.posRef = cell[0][6].loc;
 		cell[0][6].pieceRef = pawn_0;
 
 		Piece pawn_1 = blackSet.getPieceByType(PieceType.PAWN_1);
+		pawn_1.alive = true;
 		pawn_1.posRef = cell[1][6].loc;
 		cell[1][6].pieceRef = pawn_1;
 
 		Piece pawn_2 = blackSet.getPieceByType(PieceType.PAWN_2);
+		pawn_2.alive = true;
 		pawn_2.posRef = cell[2][6].loc;
 		cell[2][6].pieceRef = pawn_2;
 
 		Piece pawn_3 = blackSet.getPieceByType(PieceType.PAWN_3);
+		pawn_3.alive = true;
 		pawn_3.posRef = cell[3][6].loc;
 		cell[3][6].pieceRef = pawn_3;
 
 		Piece pawn_4 = blackSet.getPieceByType(PieceType.PAWN_4);
+		pawn_4.alive = true;
 		pawn_4.posRef = cell[4][6].loc;
 		cell[4][6].pieceRef = pawn_4;
 
 		Piece pawn_5 = blackSet.getPieceByType(PieceType.PAWN_5);
+		pawn_5.alive = true;
 		pawn_5.posRef = cell[5][6].loc;
 		cell[5][6].pieceRef = pawn_5;
 
 		Piece pawn_6 = blackSet.getPieceByType(PieceType.PAWN_6);
+		pawn_6.alive = true;
 		pawn_6.posRef = cell[6][6].loc;
 		cell[6][6].pieceRef = pawn_6;
 
 		Piece pawn_7 = blackSet.getPieceByType(PieceType.PAWN_7);
+		pawn_7.alive = true;
 		pawn_7.posRef = cell[7][6].loc;
 		cell[7][6].pieceRef = pawn_7;
 	}

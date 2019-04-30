@@ -67,27 +67,62 @@ public final class Bishop extends Piece {
 		}
 
 		int rowOffset, colOffset;
-
+		boolean movingRight = false;
+		
 		if (this.posRef.getFile() < pos.getFile()) {
+			// 1 to the right
 			colOffset = 1;
+			movingRight = true;
 		} else {
+			// 1 to the left
 			colOffset = -1;
 		}
 
 		if (this.posRef.getRank() < pos.getRank()) {
+			// Moving 1 up
 			rowOffset = 1;
 		} else {
+			// Moving 1 down
 			rowOffset = -1;
 		}
+		
+		if (movingRight) {
+			for (int x = this.posRef.getFile() + colOffset, 
+					y = this.posRef.getRank() + rowOffset;
+					x < pos.getFile(); x += colOffset) {
+				if (cell[x][y].getPiece() != null) {
+					result = false;
+					break;
+				}
+				
+				y += rowOffset;
+			}
+		} else {
+			for (int x =  this.posRef.getFile() + colOffset, 
+					y = this.posRef.getRank() + rowOffset;
+					x > pos.getFile(); x += colOffset) {
+				if (cell[x][y].getPiece() != null) {
+					result = false;
+					break;
+				}
+				
+				y += rowOffset;
+			}
+		}
 
-		for (int x = this.posRef.getFile() + colOffset, y = this.posRef.getRank()
-				+ rowOffset; x != pos.getFile(); x += colOffset) {
+		/* ORIGINAL CODE
+		for (int x = this.posRef.getFile() + colOffset, 
+					y = this.posRef.getRank() + rowOffset; 
+				x != pos.getFile(); 
+				x += colOffset) {			
 			if (cell[x][y].getPiece() != null) {
 				result = false;
+				break;
 			}
 
 			y += rowOffset;
 		}
+		*/
 
 		return result;
 	}
