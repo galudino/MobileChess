@@ -15,6 +15,7 @@ import java.util.Scanner;
 
 import model.PieceType;
 import model.chess_set.Board;
+import model.chess_set.Piece;
 
 /**
  * Represents the state of a Chess game and all of its components.
@@ -253,8 +254,41 @@ public final class Game {
 	public boolean readInputFromGUI(String input) {
 		readInput(input);
 
+		if (whitesMove) {
+			System.out.println("\n\nWhite's is playing a move...\n\n");
+		} else {
+			System.out.println("\n\nBlack's is playing a move...\n\n");
+		}
+
 		if (validMoveInput) {
 			whitesMove = whitesMove ? false : true;
+
+			Move move = getLastMove();
+
+			System.out.println("\n" + move + "\n");
+
+			Move kill = getLastKill();
+
+			if (move.getLastPiece().isWhite()) {
+				if (kill.getLastPiece().isBlack()) {
+					if (move.getLocalTime().equals(kill.getLocalTime())) {
+						System.out.println("\n\n" + "KILL:\n" +  kill + "\n\n");
+					}
+				}
+			} else if (move.getLastPiece().isBlack()) {
+				if (kill.getLastPiece().isWhite()) {
+					if (move.getLocalTime().equals(kill.getLocalTime())) {
+						System.out.println("\n\n" + "KILL:\n" + kill + "\n\n");
+					}
+				}
+			}
+
+			if (whitesMove) {
+				System.out.println("\n\nWhite's turn now.\n\n");
+			} else {
+				System.out.println("\n\nBlack's turn now.\n\n");
+			}
+
 			return true;
 		}
 

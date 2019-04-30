@@ -8,6 +8,7 @@ import android.widget.ImageView;
 
 import model.chess_set.Board;
 import model.game.Game;
+import model.game.Move;
 import model.game.Position;
 
 public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
@@ -151,6 +152,14 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         if (result) {
             moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
+
+            Move lastKill = game.getLastKill();
+
+            if (lastKill != null) {
+                Position positionLastKill = lastKill.getStartPosition();
+                int kFile = positionLastKill.getFile();
+                int kRank = positionLastKill.getRank();
+            }
         }
     }
 
