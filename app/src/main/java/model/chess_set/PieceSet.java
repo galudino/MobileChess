@@ -220,6 +220,6 @@ public final class PieceSet {
 			str += "\n";
 		}
 
-		return str;
+		return str + "\n";
 	}
 }

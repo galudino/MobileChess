@@ -26,7 +26,7 @@ import model.chess_set.PieceSet;
 final class Player {
 
 	private PieceType.Color color;
-	private PieceSet pieceSetRef; // ref to Game's Board's PieceSet
+	PieceSet pieceSetRef; // ref to Game's Board's PieceSet
 
 	private Board boardRef; // ref to Game's Board
 

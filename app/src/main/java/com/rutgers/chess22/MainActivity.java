@@ -1,3 +1,13 @@
+/**
+ * MainActivity.java
+ *
+ * Copyright (c) 2019 Patrick Nogaj, Gemuele Aludino
+ * All rights reserved.
+ *
+ * Rutgers University: School of Arts and Sciences
+ * 01:198:213 Software Methodology, Spring 2019
+ * Professor Seshadri Venugopal
+ */
 package com.rutgers.chess22;
 
 import android.content.Intent;
@@ -6,6 +16,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+/**
+ *
+ */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Button buttonPlayGame;

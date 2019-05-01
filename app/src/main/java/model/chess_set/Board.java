@@ -77,38 +77,35 @@ public final class Board {
 			if (moveList.isEmpty()) {
 				return null;
 			}
-			
+
 			boolean nullValue = true;
-			
+
 			Move lastMove = null;
 			int i = 1;
-			
+
 			/**
-			 * Within the moveList, kills are also stored.
-			 * Kills are denoted by:
+			 * Within the moveList, kills are also stored. Kills are denoted by:
 			 * 
-			 * Move # is (-1)
-			 * endPosition is null
+			 * Move # is (-1) endPosition is null
 			 * 
-			 * We want the last move performed,
-			 * disregarding the kill (if there was one).
+			 * We want the last move performed, disregarding the kill (if there
+			 * was one).
 			 */
 			do {
 				lastMove = moveList.get(moveList.size() - i);
-				
+
 				if (lastMove.getEndPosition() == null) {
 					nullValue = true;
 					++i;
 				} else {
 					nullValue = false;
 				}
-				
+
 				if (i > moveList.size()) {
 					break;
 				}
 			} while (nullValue);
-			
-			
+
 			return lastMove;
 		}
 
@@ -119,7 +116,7 @@ public final class Board {
 		 * @param rank the rank to retrieve
 		 */
 		public void setPieceNullAtPosition(int file, int rank) {
-			//loc = new Position(file, rank);
+			// loc = new Position(file, rank);
 			pieceRef = null;
 		}
 
@@ -140,13 +137,18 @@ public final class Board {
 	private List<Move> moveList;
 	private int moveCounter;
 	private int killCounter;
-	
+
 	private PieceSet whiteSet;
 	private PieceSet blackSet;
 
 	private Position[] kingMoves;
 	private boolean kingChecked;
 	private boolean kingSafe;
+
+	private boolean promoteWhite;
+	private boolean promoteBlack;
+
+	private PieceType pawnPromoteType;
 
 	/**
 	 * Default constructor
@@ -167,12 +169,17 @@ public final class Board {
 		assignBlackPieces();
 
 		moveList = new ArrayList<Move>();
-		
+
 		moveCounter = 0;
 		killCounter = 0;
 
 		kingMoves = new Position[MAX_LENGTH_WIDTH];
 		kingSafe = true;
+
+		promoteWhite = false;
+		promoteBlack = false;
+
+		pawnPromoteType = null;
 	}
 
 	/**
@@ -203,7 +210,7 @@ public final class Board {
 	Cell getCell(Position pos) {
 		return cell[pos.getFile()][pos.getRank()];
 	}
-	
+
 	/**
 	 * Accessor method to retrieve the last Move executed during gameplay
 	 * 
@@ -213,83 +220,77 @@ public final class Board {
 		if (moveList.isEmpty()) {
 			return null;
 		}
-		
+
 		boolean nullValue = true;
-		
+
 		Move lastMove = null;
 		int i = 1;
-		
+
 		/**
-		 * Within the moveList, kills are also stored.
-		 * Kills are denoted by:
+		 * Within the moveList, kills are also stored. Kills are denoted by:
 		 * 
-		 * Move # is (-1)
-		 * endPosition is null
+		 * Move # is (-1) endPosition is null
 		 * 
-		 * We want the last move performed,
-		 * disregarding the kill (if there was one).
+		 * We want the last move performed, disregarding the kill (if there was
+		 * one).
 		 */
 		do {
 			lastMove = moveList.get(moveList.size() - i);
-			
+
 			if (lastMove.getEndPosition() == null) {
 				nullValue = true;
 				++i;
 			} else {
 				nullValue = false;
 			}
-			
+
 			if (i > moveList.size()) {
 				break;
 			}
 		} while (nullValue);
-		
-		
+
 		return lastMove;
 	}
-	
+
 	/**
 	 * Retrieves the last kill from the moveList
 	 * 
-	 * @return the Move that describes the last piece to be killed,
-	 * otherwise null if there are no pieces killed
+	 * @return the Move that describes the last piece to be killed, otherwise
+	 *         null if there are no pieces killed
 	 */
 	public Move getLastKill() {
 		if (moveList.isEmpty()) {
 			return null;
 		}
-		
+
 		boolean nonNullValue = false;
-		
+
 		Move lastKill = null;
 		int i = 1;
-		
+
 		/**
-		 * Within the moveList, kills are also stored.
-		 * Kills are denoted by:
+		 * Within the moveList, kills are also stored. Kills are denoted by:
 		 * 
-		 * Move # is (-1)
-		 * endPosition is null
+		 * Move # is (-1) endPosition is null
 		 * 
-		 * We want the last kill performed,
-		 * disregarding any normal moves logged.
+		 * We want the last kill performed, disregarding any normal moves
+		 * logged.
 		 */
-		do {			
+		do {
 			lastKill = moveList.get(moveList.size() - i);
-			
+
 			if (lastKill.getEndPosition() != null) {
 				nonNullValue = true;
 				++i;
 			} else {
 				nonNullValue = false;
 			}
-			
+
 			if (i > moveList.size()) {
 				break;
 			}
 		} while (nonNullValue);
-		
-		
+
 		return lastKill;
 	}
 
@@ -306,7 +307,7 @@ public final class Board {
 	 */
 	public boolean movePiece(Piece piece, PieceSet pieceSet,
 			Position newPosition, PieceType promoType) {
-		
+
 		boolean result = false;
 
 		Cell oldPositionCell = getCell(piece.posRef);
@@ -336,7 +337,7 @@ public final class Board {
 						kingChecked = false;
 						pieceMoveLegal = true;
 						result = true;
-						
+
 						break;
 					} else {
 						pieceMoveLegal = false;
@@ -384,23 +385,7 @@ public final class Board {
 			 * to determine if piece is a promotable Pawn.
 			 */
 			if (result) {
-				boolean promoteWhite = promoType != null 
-						&& piece.isWhite() 
-						&& piece.isPawn()
-						&& newPosition.getRank() == 7;
-
-				boolean promoteBlack = promoType != null 
-						&& piece.isBlack()
-						&& piece.isPawn()
-						&& newPosition.getRank() == 0;
-
-				if (promoteWhite || promoteBlack) {
-					PieceType.Color color = promoteWhite ? 
-							PieceType.Color.WHITE : PieceType.Color.BLACK;
-					
-					piece = pieceSet.promotePawn((Pawn)piece, promoType, color);
-				}
-				
+				piece = promotePawn(piece, pieceSet, newPosition, promoType);
 
 				if (kingSafe) {
 					// This statement nullifies any reference to a Piece
@@ -426,12 +411,12 @@ public final class Board {
 			Move newestMove = new Move(piece, oldPositionCell.loc, piece.posRef,
 					moveCounter);
 			moveList.add(newestMove);
-			
-			
+
 			if (other != null) {
 				if (other.isAlive() == false) {
 					--killCounter;
-					Move death = new Move(other, piece.posRef, null, killCounter);
+					Move death = new Move(other, piece.posRef, null,
+							killCounter);
 					moveList.add(death);
 				}
 			}
@@ -443,31 +428,100 @@ public final class Board {
 			} else {
 				checkmate(king);
 			}
-			
+
 			System.out.println("Check");
 		}
 
 		return result;
 	}
-	
+
+	/**
+	 * Promotes a pawn to a desired piece, provided conditions are met
+	 * 
+	 * @param piece       the Piece, which is a Pawn to be promoted
+	 * @param pieceSet    the pieceSet from which the Piece belongs
+	 * @param newPosition the Position of the desired Cell for the PAWN
+	 * @param promoType   the PieceType to promote the PAWN to
+	 * 
+	 * @return the promoted Piece
+	 */
+	public Piece promotePawn(Piece piece, PieceSet pieceSet,
+			Position newPosition, PieceType promoType) {
+		promoteWhite = promoType != null && piece.isWhite() && piece.isPawn()
+				&& newPosition.getRank() == 7;
+
+		promoteBlack = promoType != null && piece.isBlack() && piece.isPawn()
+				&& newPosition.getRank() == 0;
+
+		if (promoteWhite || promoteBlack) {
+			PieceType.Color color = promoteWhite ? PieceType.Color.WHITE
+					: PieceType.Color.BLACK;
+
+			pawnPromoteType = piece.pieceType;
+			piece = pieceSet.promotePawn((Pawn) (piece), promoType, color);
+		}
+
+		return piece;
+	}
+
+	/**
+	 * Called by Game::readInput, after Game::whitePlayMove completes its call,
+	 * this is used to send a message to a Game instance that a WHITE pawn was
+	 * promoted.
+	 * 
+	 * @return If promoteWhite is true, the promoteWhite field will be reset to
+	 *         false, and the method returns true -- otherwise, returns false
+	 */
+	public boolean checkPromoteWhite() {
+		if (promoteWhite) {
+			promoteWhite = false;
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Called by Game::readInput, after Game::blackPlayMove completes its call,
+	 * this is used to send a message to a Game instance that a BLACK pawn was
+	 * promoted.
+	 * 
+	 * @return If promoteBlack is true, the promoteBlack field will be reset to
+	 *         false, and the method returns true -- otherwise, returns false
+	 */
+	public boolean checkPromoteBlack() {
+		if (promoteBlack) {
+			promoteBlack = false;
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Called by Game::readInput to determine the PieceType of a PAWN
+	 * (PAWN_0, PAWN_1, ...)
+	 * 
+	 * @return the PieceType of a PAWN to be promoted
+	 */
+	public PieceType getPawnPromoteType() {
+		return pawnPromoteType;
+	}
+
 	/**
 	 * Prints the log of moves as per the moveList field (ArrayList)
 	 */
-	public void printMoveLog() {
-		System.out.println("MOVE LOG (ALL PIECES) ---------------------");
-
-		String str = "";
+	public String moveLogToString() {
+		String str = "MOVE LOG (ALL PIECES) ---------------------\n";
 
 		str += "Time\t\tMove #\tPiece\tStart\tEnd\n";
 		str += "-------------------------------------------\n";
 
-		System.out.print(str);
-
 		for (Move mp : moveList) {
-			System.out.println(mp);
+			str += mp + "\n";
 		}
 
-		System.out.println();
+		return str;
 	}
 
 	/**
@@ -511,7 +565,7 @@ public final class Board {
 	 */
 	private boolean isKingSafe(King k, Position p) {
 		boolean result = true;
-		
+
 		PieceSet opponent = null;
 		opponent = k.isWhite() ? getBlackSet() : getWhiteSet();
 
@@ -560,10 +614,14 @@ public final class Board {
 		kingMoves[1] = new Position(k.posRef.getFile() - 1, k.posRef.getRank());
 		kingMoves[2] = new Position(k.posRef.getFile(), k.posRef.getRank() + 1);
 		kingMoves[3] = new Position(k.posRef.getFile(), k.posRef.getRank() - 1);
-		kingMoves[4] = new Position(k.posRef.getFile() + 1, k.posRef.getRank() - 1);
-		kingMoves[5] = new Position(k.posRef.getFile() - 1, k.posRef.getRank() - 1);
-		kingMoves[6] = new Position(k.posRef.getFile() + 1, k.posRef.getRank() + 1);
-		kingMoves[7] = new Position(k.posRef.getFile() - 1, k.posRef.getRank() + 1);
+		kingMoves[4] = new Position(k.posRef.getFile() + 1,
+				k.posRef.getRank() - 1);
+		kingMoves[5] = new Position(k.posRef.getFile() - 1,
+				k.posRef.getRank() - 1);
+		kingMoves[6] = new Position(k.posRef.getFile() + 1,
+				k.posRef.getRank() + 1);
+		kingMoves[7] = new Position(k.posRef.getFile() - 1,
+				k.posRef.getRank() + 1);
 
 		// if all proposed moves are legal and king is safe with said moves,
 		// the king has valid moves
@@ -584,7 +642,7 @@ public final class Board {
 						|| (k.isMoveLegal(cell, kingMoves[7])
 								&& isKingSafe(k, kingMoves[7])))));
 	}
-	
+
 	/**
 	 * Executes upon checkmate, and game ends
 	 * 
@@ -592,11 +650,11 @@ public final class Board {
 	 */
 	private void checkmate(King king) {
 		String output = "Checkmate";
-		
+
 		System.out.println(output);
-		
+
 		output = king.isWhite() ? "Black" : "White";
-		
+
 		System.out.println(output + " wins");
 		System.exit(0);
 	}
@@ -772,7 +830,7 @@ public final class Board {
 		pawn_7.posRef = cell[7][6].loc;
 		cell[7][6].pieceRef = pawn_7;
 	}
-	
+
 	/**
 	 * Returns a string representation of the Board's state
 	 */

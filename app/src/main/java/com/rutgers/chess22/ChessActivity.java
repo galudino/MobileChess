@@ -1,3 +1,13 @@
+/**
+ * ChessActivity.java
+ *
+ * Copyright (c) 2019 Patrick Nogaj, Gemuele Aludino
+ * All rights reserved.
+ *
+ * Rutgers University: School of Arts and Sciences
+ * 01:198:213 Software Methodology, Spring 2019
+ * Professor Seshadri Venugopal
+ */
 package com.rutgers.chess22;
 
 import android.graphics.Color;
@@ -6,30 +16,38 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
-import model.chess_set.Board;
+import model.PieceType;
 import model.game.Game;
-import model.game.Move;
 import model.game.Position;
 
+/**
+ * Represents a handle (GUI representation) for a chess game
+ *
+ * @version May 1, 2019
+ * @author patricknogaj
+ * @author gemuelealudino
+ */
 public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public static final String PIECE_BR = "BR";
-    public static final String PIECE_BN = "BN";
-    public static final String PIECE_BB = "BB";
-    public static final String PIECE_BQ = "BQ";
-    public static final String PIECE_BK = "BK";
-    public static final String PIECE_BP = "BP";
-    public static final String PIECE_WR = "WR";
-    public static final String PIECE_WN = "WN";
-    public static final String PIECE_WB = "WB";
-    public static final String PIECE_WQ = "WQ";
-    public static final String PIECE_WK = "WK";
-    public static final String PIECE_WP = "WP";
+    public static final String PIECE_BR = "bR";
+    public static final String PIECE_BN = "bN";
+    public static final String PIECE_BB = "bB";
+    public static final String PIECE_BQ = "bQ";
+    public static final String PIECE_BK = "bK";
+    public static final String PIECE_BP = "bP";
+    public static final String PIECE_WR = "wR";
+    public static final String PIECE_WN = "wN";
+    public static final String PIECE_WB = "wB";
+    public static final String PIECE_WQ = "wQ";
+    public static final String PIECE_WK = "wK";
+    public static final String PIECE_WP = "wP";
     public static final String PIECE_NO = "--";
 
     ImageView player;
 
-    private ImageView[][] board = new ImageView[8][8];
+    private static int MAX_LENGTH_WIDTH = 8;
+
+    private ImageView[][] board = new ImageView[MAX_LENGTH_WIDTH][MAX_LENGTH_WIDTH];
     private String selectedObject = null;
 
     private String oldTag;
@@ -63,16 +81,22 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         if (view instanceof ImageView) {
             ImageView image = (ImageView) view;
             String tempTag = (String) image.getTag();
+
             int file = tempTag.charAt(0) - '0';
             int rank = tempTag.charAt(1) - '0';
+
             String currentObj = getSelectedObject();
 
             if (currentObj != null) {
-                if (isSelected(tempTag))
+                if (isSelected(tempTag)) {
                     deselectPiece();
+                }
+
                 int fileSelected = currentObj.charAt(0) - '0';
                 int rankSelected = currentObj.charAt(1) - '0';
+
                 char pieceSelected = currentObj.charAt(3);
+
                 movePiece(fileSelected, rankSelected, file, rank);
                 deselectPiece();
             } else {
@@ -81,6 +105,13 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    /**
+     * Activates/deactivates highlighting for a selected piece/cell
+     *
+     * @param file  the file to set
+     * @param rank  the rank to set
+     * @param selected  true if to select/highlight a graphical cell, false to deselect it
+     */
     protected void setBackground(int file, int rank, boolean selected) {
         if (selected) {
             board[file][rank].setBackgroundColor(Color.GREEN);
@@ -93,31 +124,58 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    /**
+     * Used to select a piece/cell
+     *
+     * @param tag string representation of a graphical piece
+     */
     protected void selectPiece(String tag) {
         int file = tag.charAt(0) - '0';
         int rank = tag.charAt(1) - '0';
+
         deselectPiece();
+
         selectedObject = tag;
         setBackground(file, rank, true);
     }
 
+    /**
+     * Used to deselect a piece/cell
+     */
     protected void deselectPiece() {
         if (selectedObject != null) {
             int file = selectedObject.charAt(0) - '0';
             int rank = selectedObject.charAt(1) - '0';
+
             selectedObject = null;
+
             setBackground(file, rank, false);
         }
     }
 
+    /**
+     * Determines if a piece/cell is selected, or not
+     *
+     * @param tag string representation of a graphical piece
+     *
+     * @return true if selected, false otherwise
+     */
     protected boolean isSelected(String tag) {
         if (selectedObject == null) {
             return false;
         } else {
-            return selectedObject.charAt(0) == tag.charAt(0) && selectedObject.charAt(1) == tag.charAt(1);
+            return selectedObject.charAt(0) == tag.charAt(0)
+                    && selectedObject.charAt(1) == tag.charAt(1);
         }
     }
 
+    /**
+     *
+     * @param oldFile
+     * @param oldRank
+     * @param newFile
+     * @param newRank
+     */
     protected void movePiece(int oldFile, int oldRank, int newFile, int newRank) {
         oldTag = (String) board[oldFile][oldRank].getTag();
         newTag = (String) board[newFile][newRank].getTag();
@@ -127,49 +185,170 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                         newFile, newRank,
                         drawRequested, drawAccepted, resignRequested);
 
-        boolean result = game.readInputFromGUI(inputRequest.trim());
+        game.readInput(inputRequest.trim());
 
-        // options:
-        // translate oldTag to a form "a2 a3"
-        // translate newTag to a form "a2 a3"
+        if (game.isValidMoveInput()) {
+            /**
+             * DEBUG MESSAGES
+             */
+            System.out.println(game.boardToString());
 
-        // or:
-        // translate oldTag and newTag to create an array of int[5]
-        // file, rank, newFile, newRank, promo
+            game.printPostMoveLog();
+            game.printMoveLog();
 
-        // need to create a new start() method in Game.java, maybe
-        // startFromGUI(String oldTag, String newTag)
-        // then translate oldTag and newTag into an array of int like described above.
+            if (game.isWhitesMove()) {
+                game.printBlackSet();
+            } else {
+                game.printWhiteSet();
+            }
+            /**
+             * END DEBUG MESSAGES
+             */
 
-        // basically creating a custom version of start() -- but
-        // if I can manage to translate oldTag and newTag into something like "a2 a3"
-        // then that's all the work i have to do.
-
-        // the rest is game.java/board.java's job -- and whatever game.java
-        // reports back, from methods like isValidMoveInput(), and isWhitesMove(), etc.
-        // is what determines what pieces are moved for the graphical representation,
-        // what pieces CAN move, etc. (since we don't have a loop like the CLI version)
-
-        if (result) {
             moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
 
-            Move lastKill = game.getLastKill();
-
-            if (lastKill != null) {
-                Position positionLastKill = lastKill.getStartPosition();
-                int kFile = positionLastKill.getFile();
-                int kRank = positionLastKill.getRank();
+            if (game.didPromoteWhite() || game.didPromoteBlack()) {
+                promotion(newFile, newRank);
             }
+        } else if (game.isDidDraw()) {
+            // TODO end the game in a draw
+        } else if (game.isDidResign()) {
+            // TODO end the game in a resignation
         }
     }
 
+    /**
+     * Precondition: game.didPromoteWhite() or game.didPromoteBlack() must be true.
+     * (it is meant to be called within an if block, hence the access modifier private)
+     *
+     * @param newFile file where a promotable pawn resides
+     * @param newRank rank where a promotable pawn resides
+     */
+    private void promotion(int newFile, int newRank) {
+
+        // TODO doPromotion() -- will default to QUEEN for now.
+        PieceType pieceType = doPromotion();
+
+
+        /**
+         * Once the user makes a selection of their promotion preference
+         * in doPromotion(), the default promotion performed within Game.java,
+         * Board.java, and PieceSet.java will be overridden.
+         */
+        game.overridePawnPromotion(new Position(newFile, newRank), pieceType);
+
+        /**
+         *  The string representation of a Piece implies its PieceType,
+         *  and its PieceType.color, and is identical in form
+         *  to the public static String constants declared at the top of this class.
+         */
+        String tagSuffix = game.getLastMove().getLastPiece().toString();
+
+        int imageResourceID = -1;
+
+        switch (tagSuffix) {
+            case PIECE_BR:
+                imageResourceID = R.drawable.blackrook;
+                break;
+            case PIECE_BN:
+                imageResourceID = R.drawable.blackknight;
+                break;
+            case PIECE_BB:
+                imageResourceID = R.drawable.blackbishop;
+                break;
+            case PIECE_BQ:
+                imageResourceID = R.drawable.blackqueen;
+                break;
+            case PIECE_WR:
+                imageResourceID = R.drawable.whiterook;
+                break;
+            case PIECE_WN:
+                imageResourceID = R.drawable.whiteknight;
+                break;
+            case PIECE_WB:
+                imageResourceID = R.drawable.whitebishop;
+                break;
+            case PIECE_WQ:
+                imageResourceID = R.drawable.whitequeen;
+                break;
+            default:
+                /**
+                 * tagSuffix should not allow this switch
+                 * to hit the default case, but is here nonetheless.
+                 */
+                imageResourceID = R.drawable.whitequeen;
+                break;
+        }
+
+        board[newFile][newRank].setImageResource(imageResourceID);
+        board[newFile][newRank].setTag(newTag.substring(0, 2) + tagSuffix);
+    }
+
+    /**
+     * TODO GUI NOTIFICATION OF PROMOTION
+     *
+     * @return
+     */
+    private PieceType doPromotion() {
+        PieceType pieceType = PieceType.QUEEN;
+
+
+        /**
+         * USER makes decision here.
+         */
+
+
+        /**
+         * Let the user choose their desired pieceType.
+         * pieceType will then be assigned to
+         *  PieceType.QUEEN,
+         *  PieceType.BISHOP_R,
+         *  PieceType.ROOK_R,
+         *  PieceType.KNIGHT_R.
+         *
+         * If the PAWN is queen-side,
+         * The PieceType varieties with a _L (B, R, or K) will be used instead.
+         */
+
+        switch (game.getPawnPromoteType()) {
+            case PAWN_0:
+            case PAWN_1:
+            case PAWN_2:
+            case PAWN_3:
+                if (pieceType.equals(PieceType.BISHOP_R)) {
+                    pieceType = PieceType.BISHOP_L;
+                } else if (pieceType.equals(PieceType.ROOK_R)) {
+                    pieceType = PieceType.ROOK_R;
+                } else if (pieceType.equals(PieceType.KNIGHT_R)) {
+                    pieceType = PieceType.KNIGHT_L;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return pieceType;
+    }
+
+    /**
+     *
+     * @param oldFile
+     * @param oldRank
+     * @param newFile
+     * @param newRank
+     * @param drawRequested
+     * @param drawAccepted
+     * @param resignRequested
+     *
+     * @return
+     */
     private String translateTags(int oldFile,
-                                int oldRank,
-                                int newFile,
-                                int newRank,
-                                boolean drawRequested,
-                                boolean drawAccepted,
-                                boolean resignRequested) {
+                                 int oldRank,
+                                 int newFile,
+                                 int newRank,
+                                 boolean drawRequested,
+                                 boolean drawAccepted,
+                                 boolean resignRequested) {
         String drawRequestedString = drawRequested ? "draw?" : "";
         String drawAcceptedString = drawAccepted ? "draw" : "";
         String resignRequestedString = resignRequested ? "resign" : "";
@@ -192,42 +371,55 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         return String.format("%c%d %c%d %s", oFile, oRank, nFile, nRank, special);
     }
 
-    private char intToChar(int intFile) {
-        char file;
+    /**
+     *
+     * @param file
+     *
+     * @return
+     */
+    private char intToChar(int file) {
+        char chFile;
 
-        switch (intFile) {
+        switch (file) {
             case 0:
-                file = 'a';
+                chFile = 'a';
                 break;
             case 1:
-                file = 'b';
+                chFile = 'b';
                 break;
             case 2:
-                file = 'c';
+                chFile = 'c';
                 break;
             case 3:
-                file = 'd';
+                chFile = 'd';
                 break;
             case 4:
-                file = 'e';
+                chFile = 'e';
                 break;
             case 5:
-                file = 'f';
+                chFile = 'f';
                 break;
             case 6:
-                file = 'g';
+                chFile = 'g';
                 break;
             case 7:
-                file = 'h';
+                chFile = 'h';
                 break;
             default:
-                file = 'X';
+                chFile = '-';
                 break;
         }
 
-        return file;
+        return chFile;
     }
 
+    /**
+     *
+     * @param oldFile
+     * @param oldRank
+     * @param newFile
+     * @param newRank
+     */
     private void moveGraphicalPieces(int oldFile, int oldRank, int newFile, int newRank) {
         if (oldTag.indexOf(PIECE_BR) >= 0) {
             // set the cell of oldFile, oldRank transparent
@@ -313,6 +505,10 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    /**
+     *
+     * @param listener
+     */
     public void initializeChessboard(View.OnClickListener listener) {
         board[0][0] = (ImageView) findViewById(R.id.iv00);
         board[0][0].setTag("00" + PIECE_WR);
@@ -453,12 +649,18 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         for (int file = 0; file <= 7; file++) {
             for (int rank = 0; rank <= 7; rank++) {
                 setBackground(file, rank, false);
-                if (listener != null)
+
+                if (listener != null) {
                     board[file][rank].setOnClickListener(listener);
+                }
             }
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public String getSelectedObject() {
         return selectedObject;
     }
