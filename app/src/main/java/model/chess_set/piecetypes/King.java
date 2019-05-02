@@ -53,20 +53,20 @@ public final class King extends Piece {
 	 * model.game.Position)
 	 */
 	@Override
-	public boolean isMoveLegal(Cell[][] cell, Position pos) {
+	public boolean isMoveLegal(Cell[][] cell, Position posRef) {
 		boolean result = false;
 
-		if (Math.abs(this.posRef.getFile() - pos.getFile()) <= 1
-				&& (Math.abs(this.posRef.getRank() - pos.getRank()) <= 1)) {
-			if (cell[pos.getFile()][pos.getRank()].getPiece() == null) {
+		if (Math.abs(this.posRef.getFile() - posRef.getFile()) <= 1
+				&& (Math.abs(this.posRef.getRank() - posRef.getRank()) <= 1)) {
+			if (cell[posRef.getFile()][posRef.getRank()].getPiece() == null) {
 				result = true;
-			} else if (cell[pos.getFile()][pos.getRank()].getPiece() != null
+			} else if (cell[posRef.getFile()][posRef.getRank()].getPiece() != null
 					&& this.matchesColor(
-							cell[pos.getFile()][pos.getRank()].getPiece())) {
+							cell[posRef.getFile()][posRef.getRank()].getPiece())) {
 				result = false;
-			} else if (cell[pos.getFile()][pos.getRank()].getPiece() != null
+			} else if (cell[posRef.getFile()][posRef.getRank()].getPiece() != null
 					&& !this.matchesColor(
-							cell[pos.getFile()][pos.getRank()].getPiece())) {
+							cell[posRef.getFile()][posRef.getRank()].getPiece())) {
 				result = true;
 			} else {
 				result = false;

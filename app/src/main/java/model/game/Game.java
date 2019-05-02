@@ -21,7 +21,7 @@ import model.chess_set.PieceSet;
 /**
  * Represents the state of a Chess game and all of its components. Instances of
  * Game are to be created within the client program.
- *
+ * 
  * @version Mar 5, 2019
  * @author gemuelealudino
  * @author patricknogaj
@@ -130,11 +130,11 @@ public final class Game {
 		togglePostMoveLog();
 		togglePieceSetLog();
 	}
-
+	
 	/**
 	 * Accessor to print certain console messages for classes outside
 	 * of this package
-	 *
+	 * 
 	 * @return output string for console
 	 */
 	public String output() {
@@ -172,7 +172,7 @@ public final class Game {
 
 	/**
 	 * Retrieves the last move from the Board's moveList
-	 *
+	 * 
 	 * @return the Move that describes the last piece to be successfully moved,
 	 *         otherwise null if there are no pieces moved
 	 */
@@ -182,7 +182,7 @@ public final class Game {
 
 	/**
 	 * Retrieves the last kill from the Board's moveList
-	 *
+	 * 
 	 * @return the Move that describes the last piece to be killed, otherwise
 	 *         null if there are no pieces killed
 	 */
@@ -201,7 +201,7 @@ public final class Game {
 
 	/**
 	 * Accessor to retrieve status of game
-	 *
+	 * 
 	 * @return true if game is active, false otherwise
 	 */
 	public boolean isActive() {
@@ -210,7 +210,7 @@ public final class Game {
 
 	/**
 	 * Accessor to determine if it is white player's move, or not
-	 *
+	 * 
 	 * @return true if white's move, false otherwise
 	 */
 	public boolean isWhitesMove() {
@@ -219,7 +219,7 @@ public final class Game {
 
 	/**
 	 * Accessor to determine if a player requested a draw to the other player
-	 *
+	 * 
 	 * @return true if draw requested, false otherwise
 	 */
 	public boolean isWillDraw() {
@@ -228,7 +228,7 @@ public final class Game {
 
 	/**
 	 * Accessor to determine if player requested to resign from the game
-	 *
+	 * 
 	 * @return true if resign requested, false otherwise
 	 */
 	public boolean isWillResign() {
@@ -239,7 +239,7 @@ public final class Game {
 	 * Accessor to determine if a draw has been mutually agreed upon and will be
 	 * done (willDraw and drawGranted must both be true, and the values of those
 	 * variables are determined during the game)
-	 *
+	 * 
 	 * @return true if the draw has been agreed upon, false otherwise
 	 */
 	public boolean isDidDraw() {
@@ -251,7 +251,7 @@ public final class Game {
 	 * accepted by the other player. This is the moment when the requestee
 	 * (recipient of the request) agrees to a draw after it was proposed by the
 	 * requestee's opponent.
-	 *
+	 * 
 	 * @return true if drawGranted is true, false otherwise
 	 */
 	public boolean isDrawGranted() {
@@ -263,7 +263,7 @@ public final class Game {
 	 * been accepted by the other player. This is the moment when the requestee
 	 * (recipient of the request) agrees to let their opponent resign from the
 	 * game.
-	 *
+	 * 
 	 * @return true if didResign is true, false otherwise
 	 */
 	public boolean isDidResign() {
@@ -273,7 +273,7 @@ public final class Game {
 	/**
 	 * Accessor to determine if a move request results in a valid move and was
 	 * completed by a player.
-	 *
+	 * 
 	 * @return true if a valid move was made by a player, false otherwise
 	 */
 	public boolean isValidMoveInput() {
@@ -284,7 +284,7 @@ public final class Game {
 	 * Accessor to determine if a move request results in a valid move and was
 	 * completed by a player -- but has made a request to their opponent to end
 	 * the game by draw.
-	 *
+	 * 
 	 * @return true if validMoveInputWithDraw is true, false otherwise
 	 */
 	public boolean isValidMoveInputWithDraw() {
@@ -295,7 +295,7 @@ public final class Game {
 	 * Accessor to determine if a move request results in a valid move and was
 	 * completed by a player -- but has made a request to promote their pawn
 	 * Piece to a Queen, Bishop, Knight, or Rook.
-	 *
+	 * 
 	 * @return true if validMoveInputWithPromotion is true, false otherwise
 	 */
 	public boolean isValidMoveInputWithPromotion() {
@@ -306,10 +306,10 @@ public final class Game {
 	 * Called by ChessActivity::movePiece, after a valid move is completed by a
 	 * player. In CLI chess, Board.java will automatically promote an eligible
 	 * PAWN to a QUEEN if no preference was specified during input.
-	 *
+	 * 
 	 * For GUI chess, this method is used to determine which Pawn to promote,
 	 * after the user/player selects their preference via a dialog notification.
-	 *
+	 * 
 	 * @return if promoteWhite is true, promoteWhite will be toggled back to
 	 *         false and this method returns true -- otherwise, returns false
 	 */
@@ -326,10 +326,10 @@ public final class Game {
 	 * Called by ChessActivity::movePiece, after a valid move is completed by a
 	 * player. In CLI chess, Board.java will automatically promote an eligible
 	 * PAWN to a QUEEN if no preference was specified during input.
-	 *
+	 * 
 	 * For GUI chess, this method is used to determine which Pawn to promote,
 	 * after the user/player selects their preference via a dialog notification.
-	 *
+	 * 
 	 * @return if promoteBlack is true, promoteBlack will be toggled back to
 	 *         false and this method returns true -- otherwise, returns false
 	 */
@@ -345,7 +345,7 @@ public final class Game {
 	/**
 	 * Called by ChessActivity::movePiece, to determine the PieceType of a PAWN
 	 * (PAWN_0, PAWN_1, ...)
-	 *
+	 * 
 	 * @return a PieceType of a PAWN to be promoted
 	 */
 	public PieceType getPawnPromoteType() {
@@ -357,7 +357,7 @@ public final class Game {
 	 * Board.java (allows user-selection of promotion type, since the promotion
 	 * preference will not be typed in whilst inputting a move, as per CLI
 	 * chess)
-	 *
+	 * 
 	 * @param newPos      the new position of the promoted pawn
 	 * @param promoteType the desired PieceType for promotion
 	 */
@@ -419,14 +419,14 @@ public final class Game {
 			System.out.println(output);
 		}
 	}
-
+	
 	/**
 	 * Prints the white player's PieceSet
 	 */
 	public void printWhiteSet() {
 		System.out.println(white.pieceSetRef);
 	}
-
+	
 	/**
 	 * Prints the black player's PieceSet
 	 */
@@ -436,7 +436,7 @@ public final class Game {
 
 	/**
 	 * Returns the current state of the Game as an ASCII chess board
-	 *
+	 * 
 	 * @return string representation of the Game's Board instance
 	 */
 	public String boardToString() {
@@ -499,7 +499,7 @@ public final class Game {
 	/**
 	 * Starts a game from a String inputFilePath to an existing file.
 	 * Precondition: File to inputFilePath must exist.
-	 *
+	 * 
 	 * @param inputFilePath String representing the input file to be read
 	 * @throws IOException On nonexistent inputFilePath
 	 */
@@ -574,7 +574,7 @@ public final class Game {
 	 * cell position for a move -- which may include a preference for a
 	 * promotion type, or a request to draw, or alternatively, a declaration to
 	 * resign from the game entirely
-	 *
+	 * 
 	 * @param input EXAMPLES: "a1 a2" moves a piece from a1 to a2, "a1 a2 draw?"
 	 *              requests a draw to the opponent, if the opponent accepts,
 	 *              they will reply with "draw" otherwise, if the opponent
@@ -666,9 +666,9 @@ public final class Game {
 	/**
 	 * Parses a line of input into an integer array of a Piece's current file
 	 * and rank, and the desired file and rank for a new Position
-	 *
+	 * 
 	 * @param input a line of input
-	 *
+	 * 
 	 * @return an integer array representing a Piece's current position and the
 	 *         desired position to move to
 	 */
@@ -718,7 +718,7 @@ public final class Game {
 	/**
 	 * Takes a character and returns an int that may represent an index for a
 	 * file, rank, or ordinal or a PieceType enum
-	 *
+	 * 
 	 * @param ch the character to parse
 	 * @return an integer that represents an array index or enum ordinal
 	 */
@@ -726,45 +726,45 @@ public final class Game {
 		int result = -1;
 
 		switch (ch) {
-			case 'a':
-				result = 0;
-				break;
-			case 'b':
-				result = 1;
-				break;
-			case 'c':
-				result = 2;
-				break;
-			case 'd':
-				result = 3;
-				break;
-			case 'e':
-				result = 4;
-				break;
-			case 'f':
-				result = 5;
-				break;
-			case 'g':
-				result = 6;
-				break;
-			case 'h':
-				result = 7;
-				break;
-			case 'Q':
-				result = PieceType.QUEEN.ordinal();
-				break;
-			case 'B':
-				result = PieceType.BISHOP_R.ordinal();
-				break;
-			case 'N':
-				result = PieceType.KNIGHT_R.ordinal();
-				break;
-			case 'R':
-				result = PieceType.ROOK_R.ordinal();
-				break;
-			default:
-				result = PieceType.QUEEN.ordinal();
-				break;
+		case 'a':
+			result = 0;
+			break;
+		case 'b':
+			result = 1;
+			break;
+		case 'c':
+			result = 2;
+			break;
+		case 'd':
+			result = 3;
+			break;
+		case 'e':
+			result = 4;
+			break;
+		case 'f':
+			result = 5;
+			break;
+		case 'g':
+			result = 6;
+			break;
+		case 'h':
+			result = 7;
+			break;
+		case 'Q':
+			result = PieceType.QUEEN.ordinal();
+			break;
+		case 'B':
+			result = PieceType.BISHOP_R.ordinal();
+			break;
+		case 'N':
+			result = PieceType.KNIGHT_R.ordinal();
+			break;
+		case 'R':
+			result = PieceType.ROOK_R.ordinal();
+			break;
+		default:
+			result = PieceType.QUEEN.ordinal();
+			break;
 		}
 
 		return result;
@@ -772,17 +772,17 @@ public final class Game {
 
 	/**
 	 * Piece from the white PieceSet will be moved to a new Cell on the Board
-	 *
+	 * 
 	 * @param file    x axis coordinate of a requested Piece (0-7 only)
 	 * @param rank    y axis coordinate of a requested Piece (0-7 only)
 	 * @param newFile x axis coordinate of the desired move (0-7 only)
 	 * @param newRank y axis coordinate of the desired move (0-7 only)
 	 * @param promo   integer that represents the piece to promote to (if != -1)
-	 *
+	 * 
 	 * @return true if move executed successfully, false otherwise
 	 */
 	private boolean whitePlayMove(int file, int rank, int newFile, int newRank,
-								  int promo) {
+			int promo) {
 		whitePlay = new Position(file, rank);
 		whiteNewPosition = new Position(newFile, newRank);
 
@@ -791,17 +791,17 @@ public final class Game {
 
 	/**
 	 * Piece from the black PieceSet will be moved to a new Cell on the Board
-	 *
+	 * 
 	 * @param file    x axis coordinate of a requested Piece (0-7 only)
 	 * @param rank    y axis coordinate of a requested Piece (0-7 only)
 	 * @param newFile x axis coordinate of the desired move (0-7 only)
 	 * @param newRank y axis coordinate of the desired move (0-7 only)
 	 * @param promo   integer that represents the piece to promote to (if != -1)
-	 *
+	 * 
 	 * @return true if move executed successfully, false otherwise
 	 */
 	private boolean blackPlayMove(int file, int rank, int newFile, int newRank,
-								  int promo) {
+			int promo) {
 		blackPlay = new Position(file, rank);
 		blackNewPosition = new Position(newFile, newRank);
 

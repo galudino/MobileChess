@@ -55,74 +55,63 @@ public final class Bishop extends Piece {
 	@Override
 	public boolean isMoveLegal(Cell[][] cell, Position pos) {
 		boolean result = true;
-
-		if (this.posRef.getRank() == pos.getRank()
-				|| this.posRef.getFile() == pos.getFile()) {
-			result = false;
-		}
-
-		if (Math.abs(this.posRef.getRank() - pos.getRank()) != Math
-				.abs(this.posRef.getFile() - pos.getFile())) {
-			result = false;
-		}
-
-		int rowOffset, colOffset;
+		
 		boolean movingRight = false;
 		
-		if (this.posRef.getFile() < pos.getFile()) {
-			// 1 to the right
-			colOffset = 1;
-			movingRight = true;
-		} else {
-			// 1 to the left
-			colOffset = -1;
-		}
-
-		if (this.posRef.getRank() < pos.getRank()) {
-			// Moving 1 up
-			rowOffset = 1;
-		} else {
-			// Moving 1 down
-			rowOffset = -1;
-		}
+		int colOffset = 0;
+		int rowOffset = 0;
 		
-		if (movingRight) {
-			for (int x = this.posRef.getFile() + colOffset, 
-					y = this.posRef.getRank() + rowOffset;
-					x < pos.getFile(); x += colOffset) {
-				if (cell[x][y].getPiece() != null) {
-					result = false;
-					break;
-				}
-				
-				y += rowOffset;
-			}
-		} else {
-			for (int x =  this.posRef.getFile() + colOffset, 
-					y = this.posRef.getRank() + rowOffset;
-					x > pos.getFile(); x += colOffset) {
-				if (cell[x][y].getPiece() != null) {
-					result = false;
-					break;
-				}
-				
-				y += rowOffset;
-			}
-		}
-
-		/* ORIGINAL CODE
-		for (int x = this.posRef.getFile() + colOffset, 
-					y = this.posRef.getRank() + rowOffset; 
-				x != pos.getFile(); 
-				x += colOffset) {			
-			if (cell[x][y].getPiece() != null) {
+		int x = 0;
+		int y = 0;
+		
+		int thisPosRefRank = this.posRef.getRank();
+		int thisPosRefFile = this.posRef.getFile();
+		int posRefRank = pos.getRank();
+		int posRefFile = pos.getFile();
+		
+		int deltaRank = Math.abs(thisPosRefRank - posRefRank);
+		int deltaFile = Math.abs(thisPosRefFile - posRefFile);
+		
+		boolean equalRank = thisPosRefRank == posRefRank;
+		boolean equalFile = thisPosRefFile == posRefFile;
+		
+		boolean moveRightXIncreases = false;
+		boolean moveLeftXDecreases = false;
+		
+		boolean pieceFoundAlongPath = false;
+		
+		/**
+		 * "Function" of Bishop's movement has a slope m such that
+		 * m == 1 (moving diagonally right) || m == -1 (moving diagonally left)
+		 * 
+		 * It cannot jump over other pieces.
+		 */
+		
+		result = (equalRank || equalFile) ? false : result;
+		result = (deltaRank != deltaFile) ? false : result;
+		
+		colOffset = thisPosRefFile < posRefFile ? 1 : -1;
+		rowOffset = thisPosRefRank < posRefRank ? 1 : -1;
+		
+		movingRight = colOffset == 1 ? true : false;
+	
+		x = thisPosRefFile + colOffset;
+		y = thisPosRefRank + rowOffset;
+		
+		moveRightXIncreases = movingRight && x < posRefFile;
+		moveLeftXDecreases = !movingRight && x > posRefFile;
+		
+		while (moveRightXIncreases || moveLeftXDecreases) {
+			pieceFoundAlongPath = cell[x][y].getPiece() != null;
+			
+			if (pieceFoundAlongPath) {
 				result = false;
 				break;
 			}
-
+			
+			x += colOffset;
 			y += rowOffset;
 		}
-		*/
 
 		return result;
 	}

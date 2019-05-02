@@ -53,16 +53,16 @@ public final class Knight extends Piece {
 	 * model.game.Position)
 	 */
 	@Override
-	public boolean isMoveLegal(Cell[][] cell, Position pos) {
+	public boolean isMoveLegal(Cell[][] cell, Position posRef) {
 		boolean result = false;
 
-		if (Math.abs(pos.getFile() - this.posRef.getFile()) == 2
-				&& Math.abs(pos.getRank() - this.posRef.getRank()) == 1) {
+		if (Math.abs(posRef.getFile() - this.posRef.getFile()) == 2
+				&& Math.abs(posRef.getRank() - this.posRef.getRank()) == 1) {
 			result = true;
 		}
 
-		if (Math.abs(pos.getFile() - this.posRef.getFile()) == 1
-				&& Math.abs(pos.getRank() - this.posRef.getRank()) == 2) {
+		if (Math.abs(posRef.getFile() - this.posRef.getFile()) == 1
+				&& Math.abs(posRef.getRank() - this.posRef.getRank()) == 2) {
 			result = true;
 		}
 

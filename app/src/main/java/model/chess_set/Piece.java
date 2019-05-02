@@ -171,10 +171,10 @@ public abstract class Piece {
 	 * Determine if a move is legal given a Position pos
 	 * 
 	 * @param cell current state of the Board
-	 * @param pos  Represents the new Position for a piece after a move
+	 * @param posRef  Represents the new Position for a piece after a move
 	 * 
 	 * @return true if successful, false otherwise
 	 */
-	public abstract boolean isMoveLegal(Cell[][] cell, Position pos);
+	public abstract boolean isMoveLegal(Cell[][] cell, Position posRef);
 
 }
