@@ -10,7 +10,9 @@
  */
 package com.rutgers.chess22;
 
+import android.content.DialogInterface;
 import android.graphics.Color;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -342,16 +344,21 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 checkBoxDraw.setText("Draw.");
 
                 // TODO graphical popup notifying the other player that their opponent
-                // has requested a draw
+                // has request
+                // ed a draw
 
                 debug.log("ChessActivity::movePiece", "Draw requested");
             } else {
                 checkBoxDraw.setText("Draw?");
             }
 
+
+
             displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
         }
     }
+
+
 
     /**
      * Precondition: game.didPromoteWhite() or game.didPromoteBlack() must be true.

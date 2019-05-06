@@ -147,6 +147,10 @@ public final class Board {
 
 	private boolean promoteWhite;
 	private boolean promoteBlack;
+	
+	private boolean checkmate;
+	
+	private String outputWinner;
 
 	private PieceType pawnPromoteType;
 
@@ -178,6 +182,10 @@ public final class Board {
 
 		promoteWhite = false;
 		promoteBlack = false;
+		
+		checkmate = false;
+		
+		outputWinner = "(game still active)";
 
 		pawnPromoteType = null;
 	}
@@ -428,11 +436,33 @@ public final class Board {
 			} else {
 				checkmate(king);
 			}
+			
+			if (checkmate) {
+				return true;
+			}
 
 			System.out.println("Check");
 		}
 
 		return result;
+	}
+	
+	/**
+	 * Determines whether the WHITE player has won the game
+	 * 
+	 * @return true if WHITE player has won, false otherwise
+	 */
+	public boolean isWhiteWinner() {
+		return checkmate && outputWinner.indexOf("White") >= 0;
+	}
+	
+	/**
+	 * Determines whether the BLACK player has won the game
+	 * 
+	 * @return true if BLACK player has won, false otherwise
+	 */
+	public boolean isBlackWinner() {
+		return checkmate && outputWinner.indexOf("Black") >= 0;
 	}
 
 	/**
@@ -462,6 +492,24 @@ public final class Board {
 		}
 
 		return piece;
+	}
+	
+	/**
+	 * Accessor to determine string output when checkmate occurs
+	 * 
+	 * @return "White wins" or "Black wins" or ""
+	 */
+	public String getOutputWinner() {
+		return outputWinner;
+	}
+	
+	/**
+	 * Accessor to determine if a checkmate has occurred
+	 * 
+	 * @return true, if the game has ended in a checkmate, false otherwise
+	 */
+	public boolean isCheckmate() {
+		return checkmate;
 	}
 
 	/**
@@ -642,21 +690,18 @@ public final class Board {
 						|| (k.isMoveLegal(cell, kingMoves[7])
 								&& isKingSafe(k, kingMoves[7])))));
 	}
-
+	
 	/**
-	 * Executes upon checkmate, and game ends
+	 * Executes upon checkmate
 	 * 
 	 * @param king king that was checked
 	 */
 	private void checkmate(King king) {
-		String output = "Checkmate";
-
-		System.out.println(output);
-
-		output = king.isWhite() ? "Black" : "White";
-
-		System.out.println(output + " wins");
-		System.exit(0);
+		outputWinner = "Checkmate\n";
+		
+		outputWinner += king.isWhite() ? "Black" : "White";
+		outputWinner += " wins";
+		checkmate = true;
 	}
 
 	/**

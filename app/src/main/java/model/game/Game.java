@@ -14,6 +14,7 @@ import java.io.*;
 import java.util.Scanner;
 
 import model.PieceType;
+import model.PieceType.Color;
 import model.chess_set.Board;
 import model.chess_set.Piece;
 import model.chess_set.PieceSet;
@@ -85,6 +86,8 @@ public final class Game {
 
 	private PieceType pawnPromoteType;
 
+	private PieceType.Color gameWinner;
+
 	/**
 	 * Default constructor
 	 */
@@ -120,6 +123,8 @@ public final class Game {
 		promoteBlack = false;
 
 		pawnPromoteType = null;
+
+		gameWinner = null;
 	}
 
 	/**
@@ -130,15 +135,25 @@ public final class Game {
 		togglePostMoveLog();
 		togglePieceSetLog();
 	}
-	
+
 	/**
-	 * Accessor to print certain console messages for classes outside
-	 * of this package
+	 * Accessor to print certain console messages for classes outside of this
+	 * package
 	 * 
 	 * @return output string for console
 	 */
 	public String output() {
 		return output;
+	}
+
+	/**
+	 * Accessor to determine the winner of a game. Precondition: game must not
+	 * be active (must not be in play)
+	 * 
+	 * @return The winning player's color, otherwise if game is active, null
+	 */
+	public PieceType.Color getGameWinner() {
+		return !active ? gameWinner : null;
 	}
 
 	/**
@@ -419,14 +434,14 @@ public final class Game {
 			System.out.println(output);
 		}
 	}
-	
+
 	/**
 	 * Prints the white player's PieceSet
 	 */
 	public void printWhiteSet() {
 		System.out.println(white.pieceSetRef);
 	}
-	
+
 	/**
 	 * Prints the black player's PieceSet
 	 */
@@ -465,8 +480,8 @@ public final class Game {
 
 				readInput(input);
 				System.out.println(output);
-
-				if (didDraw || didResign) {
+				
+				if (didDraw || didResign || !active) {
 					scan.close();
 					System.exit(0);
 				}
@@ -537,7 +552,7 @@ public final class Game {
 				readInput(input);
 				System.out.println(output);
 
-				if (didDraw || didResign) {
+				if (didDraw || didResign || !active) {
 					bufferedReader.close();
 					fileReader.close();
 					System.exit(0);
@@ -584,6 +599,12 @@ public final class Game {
 	 *              will end the game and the requester loses
 	 */
 	public void readInput(String input) {
+		if (!active) {
+			System.err.println("Game no longer active: " + gameWinner
+					+ " has already won the game.");
+			return;
+		}
+
 		int[] fileRankArray = null;
 
 		validMoveInput = false;
@@ -648,8 +669,22 @@ public final class Game {
 			output = validMoveInput ? "" : "Illegal move, try again\n";
 		}
 
-		if (didDraw || didResign) {
-			return;
+		if (didDraw) {
+			// CLI output already determined
+			gameWinner = null;
+			active = false;
+		}
+		
+		if (didResign) {
+			// CLI output already determined
+			gameWinner = whitesMove ? Color.BLACK : Color.WHITE;
+			active = false;
+		}
+
+		if (board.isCheckmate()) {
+			output = board.getOutputWinner();
+			gameWinner = board.isWhiteWinner() ? Color.WHITE : Color.BLACK;
+			active = false;
 		}
 
 		if (validMoveInput) {
