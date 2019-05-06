@@ -39,6 +39,8 @@ class debug {
  */
 public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static int MAX_LENGTH_WIDTH = 8;
+
     public static final String PIECE_BR = "bR";
     public static final String PIECE_BN = "bN";
     public static final String PIECE_BB = "bB";
@@ -53,20 +55,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public static final String PIECE_WP = "wP";
     public static final String PIECE_NO = "--";
 
-    private static int MAX_LENGTH_WIDTH = 8;
-
-    LinearLayout linearLayoutChessboard;
-    LinearLayout linearLayoutTop;
-    LinearLayout linearLayoutBottom;
-
-    CheckBox checkBoxDraw;
-
-    TextView displayTurn;
-
-    Button buttonAI;
-    Button buttonUndo;
-    Button buttonDraw;
-    Button buttonResign;
 
     private static final String linearLayoutChessboardTag = "linearLayoutChessboard";
     private static final String linearLayoutTopTag = "linearLayoutTop";
@@ -79,16 +67,29 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     private static final String buttonDrawTag = "buttonDraw";
     private static final String buttonResignTag = "buttonResign";
 
-    private ImageView[][] board = new ImageView[MAX_LENGTH_WIDTH][MAX_LENGTH_WIDTH];
+    private LinearLayout linearLayoutChessboard;
+    private LinearLayout linearLayoutTop;
+    private LinearLayout linearLayoutBottom;
+
+    private CheckBox checkBoxDraw;
+
+    private TextView displayTurn;
+
+    private Button buttonAI;
+    private Button buttonUndo;
+    private Button buttonDraw;
+    private Button buttonResign;
+
+    private ImageView[][] board;
     private String selectedObject = null;
 
     private String oldTag;
     private String newTag;
 
-    private boolean drawRequested;      // activated by checkbox
+    private boolean drawRequested;      // activated by checkBoxDraw
     private boolean drawAccepted;       // activated by opponent's acceptance of other player's draw
 
-    private boolean resignRequested;    // activated by resign button pressed
+    private boolean resignRequested;    // activated by buttonResign
 
     private Game game;
 
@@ -109,6 +110,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         checkBoxDraw = findViewById(R.id.checkDraw);
         checkBoxDraw.setTag(checkBoxDrawTag);
+        checkBoxDraw.setText("Draw?");
 
         buttonAI = findViewById(R.id.btnAI);
         buttonAI.setTag(buttonAITag);
@@ -156,6 +158,11 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
                 char pieceSelected = currentObj.charAt(3);
 
+                /**
+                 * Check here to see checkBoxDraw is checked.
+                 */
+                drawRequested = checkBoxDraw.isChecked();
+
                 movePiece(fileSelected, rankSelected, file, rank);
                 deselectPiece();
             } else {
@@ -174,9 +181,49 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                     break;
                 case buttonDrawTag:
                     debug.log("ChessActivity::onClick", "Clicked buttonDraw");
+
+                    /**
+                     * If on previous turn,
+                     * checkBoxDraw was checked (which sets drawRequested == true)
+                     * and buttonDraw was pressed -- drawGranted = true.
+                     */
+
+                    drawAccepted = drawRequested;
+                    if (drawAccepted) {
+                        game.readInput("draw");
+                        System.out.println(game.output());
+                        /**
+                         * At this point, the game has now ended in a draw.
+                         * It is now up to the GUI to show notifications
+                         * and do cleanup.
+                         */
+
+                        if (game.isDidDraw()) {
+                            debug.log("[ChessActivity::onClick]",
+                                    "*** END GAME HERE BY DRAW ***");
+                        }
+                    }
+
                     break;
                 case buttonResignTag:
                     debug.log("ChessActivity::onClick", "Clicked buttonResign");
+
+                    resignRequested = true;
+                    if (resignRequested) {
+                        game.readInput("resign");
+                        System.out.println(game.output());
+                        /**
+                         * At this point, the game has now ended in a draw.
+                         * It is now up to the GUI to show notifications
+                         * and do cleanup.
+                         */
+
+                        if (game.isDidResign()) {
+                            debug.log("[ChessActivity::onClick]",
+                                    "*** END GAME HERE BY RESIGNATION ***");
+                        }
+                    }
+
                     break;
                 default:
                     break;
@@ -290,15 +337,21 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 promotion(newFile, newRank);
             }
 
-            displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
-        } else if (game.isDidDraw()) {
-            // TODO end the game in a draw
-        } else if (game.isDidResign()) {
-            // TODO end the game in a resignation
+            if (game.isWillDraw()) {
+                checkBoxDraw.setChecked(false);
+                checkBoxDraw.setText("Draw.");
+
+                // TODO graphical popup notifying the other player that their opponent
+                // has requested a draw
+
+                debug.log("ChessActivity::movePiece", "Draw requested");
+            } else {
+                checkBoxDraw.setText("Draw?");
+            }
+
+            displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
         }
     }
-
-
 
     /**
      * Precondition: game.didPromoteWhite() or game.didPromoteBlack() must be true.
@@ -311,7 +364,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         // TODO doPromotion() -- will default to QUEEN for now.
         PieceType pieceType = doPromotion();
-
 
         /**
          * Once the user makes a selection of their promotion preference
@@ -590,6 +642,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @param listener
      */
     public void initializeChessboard(View.OnClickListener listener) {
+        board = new ImageView[MAX_LENGTH_WIDTH][MAX_LENGTH_WIDTH];
+
         board[0][0] = (ImageView) findViewById(R.id.iv00);
         board[0][0].setTag("00" + PIECE_WR);
         board[1][0] = (ImageView) findViewById(R.id.iv10);
