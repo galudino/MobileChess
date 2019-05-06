@@ -61,9 +61,9 @@ public class ExampleUnitTest {
          * Comment this out for release!
          */
         //game.toggleAllDebugLogs();
-        game.toggleMoveLog();
-        game.togglePieceSetLog();
-        game.togglePostMoveLog();
+          game.toggleMoveLog();
+          game.togglePieceSetLog();
+          game.togglePostMoveLog();
 
         /**
          * If for some reason, you would

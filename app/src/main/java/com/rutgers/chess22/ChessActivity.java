@@ -14,11 +14,21 @@ import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import model.PieceType;
 import model.game.Game;
 import model.game.Position;
+
+class debug {
+    public static final void log(String classname, String message) {
+        System.out.println(String.format("[%s] %s", classname, message));
+    }
+}
 
 /**
  * Represents a handle (GUI representation) for a chess game
@@ -43,9 +53,29 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public static final String PIECE_WP = "wP";
     public static final String PIECE_NO = "--";
 
-    ImageView player;
-
     private static int MAX_LENGTH_WIDTH = 8;
+
+    LinearLayout linearLayoutChessboard;
+    LinearLayout linearLayoutTop;
+    LinearLayout linearLayoutBottom;
+
+    CheckBox checkBoxDraw;
+
+    Button buttonAI;
+    Button buttonUndo;
+    Button buttonDraw;
+    Button buttonResign;
+
+    private static final String linearLayoutChessboardTag = "linearLayoutChessboard";
+    private static final String linearLayoutTopTag = "linearLayoutTop";
+    private static final String linearLayoutBottomTag = "linearLayoutBottom";
+
+    private static final String checkBoxDrawTag = "checkBoxDraw";
+
+    private static final String buttonAITag = "buttonAI";
+    private static final String buttonUndoTag = "buttonUndo";
+    private static final String buttonDrawTag = "buttonDraw";
+    private static final String buttonResignTag = "buttonResign";
 
     private ImageView[][] board = new ImageView[MAX_LENGTH_WIDTH][MAX_LENGTH_WIDTH];
     private String selectedObject = null;
@@ -65,6 +95,30 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chess);
         initializeChessboard(this);
+
+        linearLayoutChessboard = findViewById(R.id.chessboard);
+        linearLayoutChessboard.setTag(linearLayoutChessboardTag);
+
+        linearLayoutTop = findViewById(R.id.linearLayoutTop);
+        linearLayoutTop.setTag(linearLayoutTopTag);
+
+        linearLayoutBottom = findViewById(R.id.linearLayoutBottom);
+        linearLayoutBottom.setTag(linearLayoutBottomTag);
+
+        checkBoxDraw = findViewById(R.id.checkDraw);
+        checkBoxDraw.setTag(checkBoxDrawTag);
+
+        buttonAI = findViewById(R.id.btnAI);
+        buttonAI.setTag(buttonAITag);
+
+        buttonUndo = findViewById(R.id.btnRollback);
+        buttonUndo.setTag(buttonUndoTag);
+
+        buttonDraw = findViewById(R.id.btnDraw);
+        buttonDraw.setTag(buttonDrawTag);
+
+        buttonResign = findViewById(R.id.btnResign);
+        buttonResign.setTag(buttonResignTag);
 
         oldTag = "";
         newTag = "";
@@ -101,6 +155,26 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 deselectPiece();
             } else {
                 selectPiece(tempTag);
+            }
+        } else if (view instanceof Button) {
+            Button button = (Button)(view);
+            String buttonTag = (String)(button.getTag());
+
+            switch (buttonTag) {
+                case buttonAITag:
+                    debug.log("ChessActivity::onClick", "Clicked buttonAI");
+                    break;
+                case buttonUndoTag:
+                    debug.log("ChessActivity::onClick", "Clicked buttonUndo");
+                    break;
+                case buttonDrawTag:
+                    debug.log("ChessActivity::onClick", "Clicked buttonDraw");
+                    break;
+                case buttonResignTag:
+                    debug.log("ChessActivity::onClick", "Clicked buttonResign");
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -216,6 +290,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             // TODO end the game in a resignation
         }
     }
+
+
 
     /**
      * Precondition: game.didPromoteWhite() or game.didPromoteBlack() must be true.
@@ -349,26 +425,23 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                  boolean drawRequested,
                                  boolean drawAccepted,
                                  boolean resignRequested) {
-        String drawRequestedString = drawRequested ? "draw?" : "";
-        String drawAcceptedString = drawAccepted ? "draw" : "";
-        String resignRequestedString = resignRequested ? "resign" : "";
-
         char oFile = intToChar(oldFile);
         int oRank = oldRank + 1;
 
         char nFile = intToChar(newFile);
         int nRank = newRank + 1;
 
-        String special = "";
+        String result = String.format("%c%d %c%d", oFile, oRank, nFile, nRank);
+
         if (drawRequested) {
-            special = drawRequestedString;
+            result += " draw?";
         } else if (drawAccepted) {
-            special = drawAcceptedString;
+            result = "draw";
         } else if (resignRequested) {
-            special = resignRequestedString;
+            result = "resign";
         }
 
-        return String.format("%c%d %c%d %s", oFile, oRank, nFile, nRank, special);
+        return result;
     }
 
     /**
