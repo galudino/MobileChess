@@ -61,6 +61,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
     CheckBox checkBoxDraw;
 
+    TextView displayTurn;
+
     Button buttonAI;
     Button buttonUndo;
     Button buttonDraw;
@@ -128,6 +130,9 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         resignRequested = false;
 
         game = new Game();
+
+        displayTurn = (TextView) findViewById(R.id.displayTurn);
+        displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
     }
 
     @Override
@@ -284,6 +289,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             if (game.didPromoteWhite() || game.didPromoteBlack()) {
                 promotion(newFile, newRank);
             }
+
+            displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
         } else if (game.isDidDraw()) {
             // TODO end the game in a draw
         } else if (game.isDidResign()) {
