@@ -305,6 +305,11 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @param newRank
      */
     protected void movePiece(int oldFile, int oldRank, int newFile, int newRank) {
+        if (game.isActive() == false) {
+            debug.log("ChessActivity::movePiece", "Game is no longer active.");
+            return;
+        }
+
         oldTag = (String) board[oldFile][oldRank].getTag();
         newTag = (String) board[newFile][newRank].getTag();
 
@@ -350,6 +355,17 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 debug.log("ChessActivity::movePiece", "Draw requested");
             } else {
                 checkBoxDraw.setText("Draw?");
+            }
+
+            if (game.isDidDraw()) {
+                debug.log("ChessActivity::movePiece", "Game has ended in a draw.");
+            }
+
+            /**
+             * If checkmate has occurred...
+             */
+            if (game.isActive() == false) {
+                debug.log("ChessActivity::movePiece", game.getGameWinner() + " has won!");
             }
 
 
