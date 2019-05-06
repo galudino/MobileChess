@@ -63,80 +63,37 @@ public final class Rook extends Piece {
 	public boolean isMoveLegal(Cell[][] cell, Position posRef) {
 		boolean result = true;
 
-		boolean movingRight = false;
-		boolean movingUp = false;
-
-		int x = 0;
-		int y = 0;
-
-		int thisPosRefRank = this.posRef.getRank();
-		int thisPosRefFile = this.posRef.getFile();
-		int posRefRank = posRef.getRank();
-		int posRefFile = posRef.getFile();
-
-		boolean unequalRank = thisPosRefRank != posRefRank;
-		boolean unequalFile = thisPosRefFile != posRefFile;
-
-		boolean moveRightXIncreases = false;
-		boolean moveLeftXDecreases = false;
-		boolean moveUpYIncreases = false;
-		boolean moveDownYDecreases = false;
-
-		boolean pieceFoundAlongPath = false;
-
-		/**
-		 * "Function" of Rook's movement has a slope m such that
-		 * m == 0 (the x-axis)
-		 * || m == UNDEFINED (the y-axis) 
-		 * 
-		 * It cannot "jump" over other pieces.
-		 */
-		
-		if (unequalRank && unequalFile) {
+		//This is to check if it is moving on one path aka not diagonal
+		if(posRef.getRank() != this.posRef.getRank() && posRef.getFile() != this.posRef.getFile()) {
 			result = false;
 		}
 
-		int offset = 0;
+		//Utilized to check if next piece will be null
+		int offset;
 
-		if (unequalFile) {
-			offset = thisPosRefFile < posRefFile ? 1 : -1;
-			movingRight = offset == 1 ? true : false;
+		if(posRef.getFile() != this.posRef.getFile()) {
+			if(this.posRef.getFile() < posRef.getFile())
+				offset = 1;
+			else
+				offset = -1;
 
-			x = thisPosRefFile + offset;
-
-			moveRightXIncreases = movingRight && x < posRefFile;
-			moveLeftXDecreases = !movingRight && x > posRefFile;
-
-			while (moveRightXIncreases || moveLeftXDecreases) {
-				pieceFoundAlongPath = cell[x][thisPosRefRank]
-						.getPiece() != null;
-
-				if (pieceFoundAlongPath) {
-					result = false;
-					break;
+			for(int x = this.posRef.getFile() + offset; x != posRef.getFile(); x += offset) {
+				if(cell[x][this.posRef.getRank()].getPiece() != null) {
+					return false;
 				}
-
-				x += offset;
 			}
-		} else if (unequalRank) {
-			offset = thisPosRefRank < posRefRank ? 1 : -1;
-			movingUp = offset == 1 ? true : false;
+		}
 
-			y = thisPosRefRank + offset;
+		if(posRef.getRank() != this.posRef.getRank()) {
+			if(this.posRef.getRank() < posRef.getRank())
+				offset = 1;
+			else
+				offset = -1;
 
-			moveUpYIncreases = movingUp && y < posRefRank;
-			moveDownYDecreases = !movingUp && y > posRefRank;
-
-			while (moveUpYIncreases || moveDownYDecreases) {
-				pieceFoundAlongPath = cell[thisPosRefFile][y]
-						.getPiece() != null;
-
-				if (pieceFoundAlongPath) {
-					result = false;
-					break;
+			for(int x = this.posRef.getRank() + offset; x != posRef.getRank(); x += offset) {
+				if(cell[this.posRef.getFile()][x].getPiece() != null) {
+					return false;
 				}
-
-				y += offset;
 			}
 		}
 

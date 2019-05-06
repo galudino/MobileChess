@@ -27,6 +27,14 @@
             android:text="@string/draw"
             android:textSize="20sp" />
 
+        <TextView
+            android:id="@+id/displayTurn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:visibility="visible"
+            tools:visibility="visible" />
+
     </LinearLayout>
 
     <include android:id="@+id/includeboard"
