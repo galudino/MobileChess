@@ -429,6 +429,41 @@ public final class Game {
 
 		return false;
 	}
+	
+	/**
+	 * Called by ChessActivity::movePiece, determine if a promotion
+	 * can take place given oldFile, oldRank, newFile, and newRank.
+	 * 
+	 * @param oldFile the file of a given piece to move
+	 * @param oldRank the rank of a given piece to move
+	 * @param newFile the desired file of a piece to move
+	 * @param newRank the desired rank of a piece to move
+	 * 
+	 * @return true if promotable, false otherwise
+	 */
+	public boolean canPromote(int oldFile, int oldRank, int newFile, int newRank) {
+		boolean canPromote = false;
+		
+		PieceSet pieceSet = whitesMove ? 
+				white.pieceSetRef : black.pieceSetRef;
+		
+		Piece piece = 
+				pieceSet.getPieceByPosition(new Position(oldFile, oldRank));
+		
+		if (piece.isPawn()) {
+			if (piece.isWhite()) {
+				if (newRank == 7) {
+					canPromote = true;
+				}
+			} else {
+				if (newRank == 0) {
+					canPromote = true;
+				}
+			}
+		}
+		
+		return canPromote;
+	}
 
 	/**
 	 * Called by ChessActivity::movePiece, to determine the PieceType of a PAWN
