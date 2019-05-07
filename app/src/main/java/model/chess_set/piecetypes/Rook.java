@@ -22,6 +22,7 @@ import model.game.Position;
  */
 public final class Rook extends Piece {
 
+	private PieceType promotionPawnType;
 	private boolean canCastle;
 
 	/**
@@ -30,12 +31,14 @@ public final class Rook extends Piece {
 	 * @param pieceType the PieceType to assign
 	 * @param color     the Color of a Player's PieceSet
 	 */
-	public Rook(PieceType pieceType, PieceType.Color color) {
+	public Rook(PieceType pieceType, PieceType promotionPawnType, PieceType.Color color) {
 		super(color);
 		canCastle = true;
 
 		this.pieceType = pieceType.equals(PieceType.ROOK_R)
 				|| pieceType.equals(PieceType.ROOK_L) ? pieceType : null;
+		
+		this.promotionPawnType = promotionPawnType;
 
 		if (this.pieceType == null) {
 			System.err.println("ERROR: Set this piece to either "
@@ -47,6 +50,16 @@ public final class Rook extends Piece {
 			identifier += pieceType.equals(PieceType.ROOK_R) ? "   (right)"
 					: "   (left)";
 		}
+	}
+	
+	/**
+	 * Returns null if an original Piece, but if from promotion -- return
+	 * a PieceType.PAWN
+	 * 
+	 * @return the former PAWN type of this Rook, if from a promotion
+	 */
+	public PieceType getPromotionPawnType() {
+		return promotionPawnType;
 	}
 
 	public boolean canCastle() {

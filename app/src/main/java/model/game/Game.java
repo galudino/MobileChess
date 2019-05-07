@@ -11,6 +11,9 @@
 package model.game;
 
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Scanner;
 
 import model.PieceType;
@@ -18,6 +21,10 @@ import model.PieceType.Color;
 import model.chess_set.Board;
 import model.chess_set.Piece;
 import model.chess_set.PieceSet;
+
+final class GameReplay {
+	
+}
 
 /**
  * Represents the state of a Chess game and all of its components. Instances of
@@ -76,6 +83,9 @@ public final class Game {
 	private Reader fileReader;
 	private Reader bufferedReader;
 
+	private LocalDateTime gameStartTime;
+	private LocalDateTime gameEndTime;
+
 	private boolean printBoard;
 	private boolean debugMoveLog;
 	private boolean debugPostMoveLog;
@@ -112,7 +122,16 @@ public final class Game {
 		validMoveInputWithDraw = false;
 		validMoveInputWithPromotion = false;
 
+		input = "";
 		output = "";
+
+		scan = null;
+		inputFile = null;
+		fileReader = null;
+		bufferedReader = null;
+		
+		gameStartTime = LocalDateTime.now();
+		gameEndTime = null;
 
 		printBoard = true;
 		debugMoveLog = false;
@@ -134,6 +153,60 @@ public final class Game {
 		toggleMoveLog();
 		togglePostMoveLog();
 		togglePieceSetLog();
+	}
+	
+	/**
+	 * Accessor to retrieve a game's start time
+	 * 
+	 * @return the instantiation time of this Game instance
+	 */
+	public LocalDateTime getStartTime() {
+		return gameStartTime;
+	}
+	
+	/**
+	 * Accessor to retrieve a game's end time
+	 * 
+	 * @return the time during which a checkmate, resignation, or draw occurred,
+	 * or null - if the game is still active
+	 */
+	public LocalDateTime getEndTime() {
+		return !active ? gameEndTime : null;
+	}
+	
+	/**
+	 * Accessor to retrieve the move list for a Game.
+	 * Precondition: Game must no longer be active to retrieve the move list.
+	 * 
+	 * @return a move list for a retired game, otherwise null
+	 */
+	public List<Move> getMoveList() {
+		if (active) {
+			return null;
+		}
+		
+		return board.getMoveList();
+	}
+	
+	public File generateMoveListFile(String filename) throws IOException {
+		File result = null;
+		/*
+		if (!active) {
+			result = new File(filename);
+			
+			BufferedWriter bw = new BufferedWriter(new FileWriter(result));
+			
+			
+			List<Move> moveList = board.getMoveList();
+			
+			for (Move m : moveList) {
+				bw.append(m.getStartPosition() + " " + m.getEndPosition());
+			}
+			
+		}
+		*/
+		
+		return result;
 	}
 
 	/**
@@ -378,12 +451,12 @@ public final class Game {
 	 */
 	public void overridePawnPromotion(Position newPos, PieceType promoteType) {
 		Move lastMove = getLastMove();
-		Piece pawnPiece = lastMove.getLastPiece();
+		Piece piece = lastMove.getLastPiece();
+		
+		PieceSet pieceSet = 
+				piece.isWhite() ? white.pieceSetRef : black.pieceSetRef;
 
-		PieceSet pieceSet = pawnPiece.isWhite() ? white.pieceSetRef
-				: black.pieceSetRef;
-
-		board.promotePawn(pawnPiece, pieceSet, newPos, promoteType);
+		board.promotePawn(piece, pieceSet, newPos, promoteType);
 	}
 
 	/**
@@ -402,9 +475,9 @@ public final class Game {
 			String color = "";
 			color = move.getLastPiece().isWhite() ? "WHITE" : "BLACK";
 			output = "The " + color + " piece player has made a move...\n\n";
-			output += "LAST MOVE PERFORMED" + " -----------------------\n";
-			output += "Time\t\tMove #\tPiece\tStart\tEnd\n";
-			output += "-------------------------------------------\n";
+			output += "LAST MOVE PERFORMED" + " -----------------------------------------\n";
+			output += "Time\t\tMove #\tPiece\tStart\tEnd\tPromoted From\n";
+			output += "-------------------------------------------------------------\n";
 			output += move + "\n";
 
 			Move kill = getLastKill();
@@ -461,7 +534,7 @@ public final class Game {
 	/**
 	 * Begins game loop
 	 */
-	public void start() {
+	public void start() {		
 		scan = new Scanner(System.in);
 		input = "";
 
@@ -482,28 +555,29 @@ public final class Game {
 				System.out.println(output);
 				
 				if (didDraw || didResign || !active) {
-					scan.close();
-					System.exit(0);
+					break;
 				}
 			} while (validMoveInput == false);
 
-			if (printBoard) {
-				System.out.println(boardToString());
-			}
+			if (active) {
+				if (printBoard) {
+					System.out.println(boardToString());
+				}
 
-			if (debugPostMoveLog) {
-				printPostMoveLog();
-			}
+				if (debugPostMoveLog) {
+					printPostMoveLog();
+				}
 
-			if (debugMoveLog) {
-				printMoveLog();
-			}
+				if (debugMoveLog) {
+					printMoveLog();
+				}
 
-			if (debugPieceSetLog) {
-				if (whitesMove == false) {
-					white.printPieceSet();
-				} else {
-					black.printPieceSet();
+				if (debugPieceSetLog) {
+					if (whitesMove == false) {
+						white.printPieceSet();
+					} else {
+						black.printPieceSet();
+					}
 				}
 			}
 		}
@@ -518,7 +592,7 @@ public final class Game {
 	 * @param inputFilePath String representing the input file to be read
 	 * @throws IOException On nonexistent inputFilePath
 	 */
-	public void startFromFile(String inputFilePath) throws IOException {
+	public void startFromFile(String inputFilePath) throws IOException {		
 		inputFile = new File(inputFilePath);
 
 		if (inputFile.exists() == false) {
@@ -530,6 +604,91 @@ public final class Game {
 		fileReader = new FileReader(inputFile);
 		bufferedReader = new BufferedReader(fileReader);
 		input = "";
+		
+		if (printBoard) {
+			System.out.println(board);
+		}
+
+		while (active) {
+			do {
+				validMoveInput = false;
+				
+				input = ((BufferedReader) bufferedReader).readLine();
+				System.out.println();
+
+				if (input == null) {
+					bufferedReader.close();
+					fileReader.close();
+					inputFile = null;
+					start();
+					break;
+				}
+
+				readInput(input);
+				System.out.println(output);
+
+				if (didDraw || didResign || !active) {
+					break;
+				}
+			} while (validMoveInput == false);
+
+			if (active) {
+				if (printBoard) {
+					System.out.println(boardToString());
+				}
+
+				if (debugPostMoveLog) {
+					printPostMoveLog();
+				}
+
+				if (debugMoveLog) {
+					printMoveLog();
+				}
+
+				if (debugPieceSetLog) {
+					if (whitesMove == false) {
+						white.printPieceSet();
+					} else {
+						black.printPieceSet();
+					}
+				}
+			}
+		}
+
+		inputFile = null;
+		bufferedReader.close();
+		fileReader.close();
+	}
+	
+	/**
+	 * Starts a game from a String inputFilePath to an existing file.
+	 * One move is displayed at at time using the ENTER/RETURN key upon
+	 * prompt.
+	 * Precondition: File to inputFilePath must exist.
+	 * 
+	 * @param inputFilePath String representing the input file to be read
+	 * @throws IOException On nonexistent inputFilePath
+	 */
+	public void startFromFilePlayByPlay(String inputFilePath) throws IOException {
+		if (board.getLastMove() != null) {
+			System.err.println("Cannot call start() on a game that is already in progress!");
+			return;
+		}
+		
+		inputFile = new File(inputFilePath);
+
+		if (inputFile.exists() == false) {
+			output = "Error: " + inputFilePath + " does not exist.";
+			System.err.println(output);
+			System.exit(0);
+		}
+		
+		System.out.println("*** PLAY BY PLAY MODE ***\n");
+
+		scan = new Scanner(System.in);
+		fileReader = new FileReader(inputFile);
+		bufferedReader = new BufferedReader(fileReader);
+		input = "";
 
 		if (printBoard) {
 			System.out.println(board);
@@ -538,6 +697,21 @@ public final class Game {
 		while (active) {
 			do {
 				validMoveInput = false;
+				
+				output = whitesMove ? "White's " : "Black's ";
+
+				System.out.print(output + "move (press ENTER to see the next move):");
+				input = scan.nextLine();
+				
+				while (input.equals("") == false) {
+					System.out.println("Hit ENTER to see the next move or X to quit.");
+					
+					input = scan.nextLine();
+					
+					if (input.equalsIgnoreCase("X")) {
+						System.exit(0);
+					}
+				}
 
 				input = ((BufferedReader) bufferedReader).readLine();
 				System.out.println();
@@ -553,29 +727,29 @@ public final class Game {
 				System.out.println(output);
 
 				if (didDraw || didResign || !active) {
-					bufferedReader.close();
-					fileReader.close();
-					System.exit(0);
+					break;
 				}
 			} while (validMoveInput == false);
 
-			if (printBoard) {
-				System.out.println(boardToString());
-			}
+			if (active) {
+				if (printBoard) {
+					System.out.println(boardToString());
+				}
 
-			if (debugPostMoveLog) {
-				printPostMoveLog();
-			}
+				if (debugPostMoveLog) {
+					printPostMoveLog();
+				}
 
-			if (debugMoveLog) {
-				printMoveLog();
-			}
+				if (debugMoveLog) {
+					printMoveLog();
+				}
 
-			if (debugPieceSetLog) {
-				if (whitesMove == false) {
-					white.printPieceSet();
-				} else {
-					black.printPieceSet();
+				if (debugPieceSetLog) {
+					if (whitesMove == false) {
+						white.printPieceSet();
+					} else {
+						black.printPieceSet();
+					}
 				}
 			}
 		}
@@ -599,9 +773,18 @@ public final class Game {
 	 *              will end the game and the requester loses
 	 */
 	public void readInput(String input) {
-		if (!active) {
-			System.err.println("Game no longer active: " + gameWinner
-					+ " has already won the game.");
+		if (!input.equals("save")) {
+			if (!active) {
+				System.err.println("Game no longer active: " + gameWinner
+						+ " has already won the game.");
+				return;
+			}
+		} else if (input.equals("save")) {
+			output = "";
+			saveGame();
+			return;
+		} else if (input.equals("undo")) {
+			undoMove();
 			return;
 		}
 
@@ -618,24 +801,19 @@ public final class Game {
 
 		if (validMoveInput) {
 			willDraw = false;
-			fileRankArray = getFileRankArray(input);
 		} else if (validMoveInputWithPromotion) {
 			willDraw = false;
-			fileRankArray = getFileRankArray(input);
 		} else if (validMoveInputWithDraw) {
 			willDraw = true;
-			fileRankArray = getFileRankArray(input);
 		} else if (drawGranted) {
 			didDraw = true;
-			output = "draw";
 		} else if (willResign) {
 			didResign = true;
-			output = whitesMove ? "Black wins" : "White wins";
 		} else {
 			validMoveInput = false;
 			output = "Invalid input, try again\n";
 		}
-
+			
 		if (validMoveInput || validMoveInputWithPromotion
 				|| validMoveInputWithDraw) {
 			int file = -1;
@@ -643,6 +821,8 @@ public final class Game {
 			int newFile = -1;
 			int newRank = -1;
 			int promo = -1;
+			
+			fileRankArray = getFileRankArray(input);
 
 			file = fileRankArray[0];
 			rank = fileRankArray[1];
@@ -668,34 +848,46 @@ public final class Game {
 
 			output = validMoveInput ? "" : "Illegal move, try again\n";
 		}
-
-		if (didDraw) {
-			// CLI output already determined
-			gameWinner = null;
+		
+		if (didDraw || didResign || board.isCheckmate()) {
 			active = false;
+			gameEndTime = LocalDateTime.now();
+			
+			if (didDraw) {
+				output = "draw";
+				board.setOutputWinner("draw");
+				gameWinner = null;
+			}
+			
+			if (didResign) {
+				output = whitesMove ? "Black wins" : "White wins";
+				board.setOutputWinner(whitesMove ? "Black wins" : "White wins");
+				gameWinner = whitesMove ? Color.BLACK : Color.WHITE;
+			}
+			
+			if (board.isCheckmate()) {
+				output = board.getOutputWinner();
+				gameWinner = board.isWhiteWinner() ? Color.WHITE : Color.BLACK;
+			}
 		}
 		
-		if (didResign) {
-			// CLI output already determined
-			gameWinner = whitesMove ? Color.BLACK : Color.WHITE;
-			active = false;
-		}
-
-		if (board.isCheckmate()) {
-			output = board.getOutputWinner();
-			gameWinner = board.isWhiteWinner() ? Color.WHITE : Color.BLACK;
-			active = false;
-		}
-
 		if (validMoveInput) {
 			whitesMove = whitesMove ? false : true;
 		}
-
+		
 		validMoveInputWithDraw = false;
 		validMoveInputWithPromotion = false;
 
 		drawGranted = false;
 		willResign = false;
+	}
+	
+	private void undoMove() {
+		System.out.println("** UNDO **");
+	}
+	
+	private void saveGame() {
+		System.out.println("\n[State of game saved at " + LocalTime.now() + "]");
 	}
 
 	/**
@@ -708,6 +900,10 @@ public final class Game {
 	 *         desired position to move to
 	 */
 	private int[] getFileRankArray(String input) {
+		if (input.equals("draw") || input.equals("resign")) {
+			return null;
+		}
+		
 		String fileRankStr = "";
 		String newFileNewRankStr = "";
 		String promoStr = null;

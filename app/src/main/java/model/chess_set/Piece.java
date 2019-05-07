@@ -13,7 +13,6 @@ package model.chess_set;
 import model.PieceType;
 import model.chess_set.Board.Cell;
 import model.chess_set.piecetypes.King;
-import model.chess_set.piecetypes.Pawn;
 import model.game.Position;
 
 /**
@@ -132,7 +131,7 @@ public abstract class Piece {
 				|| pt.equals(PieceType.PAWN_5) || pt.equals(PieceType.PAWN_6)
 				|| pt.equals(PieceType.PAWN_7);
 
-		return isPieceTypePawn && this instanceof Pawn;
+		return isPieceTypePawn && this instanceof Piece;
 	}
 
 	/**

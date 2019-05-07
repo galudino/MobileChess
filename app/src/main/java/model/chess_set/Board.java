@@ -15,7 +15,6 @@ import java.util.List;
 
 import model.PieceType;
 import model.chess_set.piecetypes.King;
-import model.chess_set.piecetypes.Pawn;
 import model.game.Move;
 import model.game.Position;
 
@@ -218,6 +217,20 @@ public final class Board {
 	Cell getCell(Position pos) {
 		return cell[pos.getFile()][pos.getRank()];
 	}
+	
+	/**
+	 * Accessor to retrieve the moveList of a game that has ended
+	 * in a checkmate, resignation, or draw
+	 * 
+	 * @return a moveList of a finished game, otherwise if game active -- null
+	 */
+	public List<Move> getMoveList() {
+		if (outputWinner.equals("(game still active)")) {
+			return null;
+		} else {
+			return moveList;
+		}
+	}
 
 	/**
 	 * Accessor method to retrieve the last Move executed during gameplay
@@ -417,14 +430,16 @@ public final class Board {
 			++moveCounter;
 
 			Move newestMove = new Move(piece, oldPositionCell.loc, piece.posRef,
-					moveCounter);
+					moveCounter, pawnPromoteType);
 			moveList.add(newestMove);
+			
+			pawnPromoteType = null;
 
 			if (other != null) {
 				if (other.isAlive() == false) {
 					--killCounter;
 					Move death = new Move(other, piece.posRef, null,
-							killCounter);
+							killCounter, null);
 					moveList.add(death);
 				}
 			}
@@ -488,7 +503,7 @@ public final class Board {
 					: PieceType.Color.BLACK;
 
 			pawnPromoteType = piece.pieceType;
-			piece = pieceSet.promotePawn((Pawn) (piece), promoType, color);
+			piece = pieceSet.promotePawn((Piece) (piece), promoType, color);
 		}
 
 		return piece;
@@ -501,6 +516,17 @@ public final class Board {
 	 */
 	public String getOutputWinner() {
 		return outputWinner;
+	}
+	
+	/**
+	 * Mutator to change the output message, if the game is still active
+	 * 
+	 * @param message the message to change
+	 */
+	public void setOutputWinner(String message) {
+		if (outputWinner.equals("(game still active)")) {
+			outputWinner = message;
+		}
 	}
 	
 	/**
@@ -560,10 +586,10 @@ public final class Board {
 	 * Prints the log of moves as per the moveList field (ArrayList)
 	 */
 	public String moveLogToString() {
-		String str = "MOVE LOG (ALL PIECES) ---------------------\n";
+		String str = "MOVE LOG (ALL PIECES) ---------------------------------------\n";
 
-		str += "Time\t\tMove #\tPiece\tStart\tEnd\n";
-		str += "-------------------------------------------\n";
+		str += "Time\t\tMove #\tPiece\tStart\tEnd\tPromoted From\n";
+		str += "-------------------------------------------------------------\n";
 
 		for (Move mp : moveList) {
 			str += mp + "\n";

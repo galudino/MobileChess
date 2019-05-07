@@ -40,13 +40,13 @@ public final class PieceSet {
 		pieceArray = new Piece[PIECE_COUNT];
 
 		Piece king = new King(color);
-		Piece queen = new Queen(color);
-		Piece bishop_l = new Bishop(PieceType.BISHOP_L, color);
-		Piece bishop_r = new Bishop(PieceType.BISHOP_R, color);
-		Piece knight_l = new Knight(PieceType.KNIGHT_L, color);
-		Piece knight_r = new Knight(PieceType.KNIGHT_R, color);
-		Piece rook_l = new Rook(PieceType.ROOK_L, color);
-		Piece rook_r = new Rook(PieceType.ROOK_R, color);
+		Piece queen = new Queen(color, null);
+		Piece bishop_l = new Bishop(PieceType.BISHOP_L, null, color);
+		Piece bishop_r = new Bishop(PieceType.BISHOP_R, null, color);
+		Piece knight_l = new Knight(PieceType.KNIGHT_L, null, color);
+		Piece knight_r = new Knight(PieceType.KNIGHT_R, null, color);
+		Piece rook_l = new Rook(PieceType.ROOK_L, null, color);
+		Piece rook_r = new Rook(PieceType.ROOK_R, null, color);
 		Piece pawn_0 = new Pawn(PieceType.PAWN_0, color);
 		Piece pawn_1 = new Pawn(PieceType.PAWN_1, color);
 		Piece pawn_2 = new Pawn(PieceType.PAWN_2, color);
@@ -120,32 +120,33 @@ public final class PieceSet {
 	 * Precondition: @see Board.java, line 276
 	 * promoType must be QUEEN, BISHOP_R/L, KNIGHT_R/L, or ROOK_R/L.
 	 * 
-	 * @param pawnPiece the Pawn to promote
+	 * @param piece the Pawn to promote
 	 * @param promoType Queen, Bishop, Knight, or Rook
 	 * @param color White, or Black
 	 * 
 	 * @return a promoted Pawn -- a new Queen, Bishop, Knight, or Rook
 	 */
-	Piece promotePawn(Pawn pawnPiece, PieceType promoType, PieceType.Color color) {
+	Piece promotePawn(Piece piece, PieceType promoType, PieceType.Color color) {
 		Piece promo = null;
 		
 		switch (promoType) {
 		case QUEEN:
-			promo = new Queen(color);
+			//promo = new Queen(color);
+			promo = new Queen(color, piece.pieceType);
 			break;
 		case BISHOP_R:
-			switch (pawnPiece.pieceType) {
+			switch (piece.pieceType) {
 			case PAWN_0:
 			case PAWN_1:
 			case PAWN_2:
 			case PAWN_3:
-				promo = new Bishop(PieceType.BISHOP_L, color);				
+				promo = new Bishop(PieceType.BISHOP_L, piece.pieceType, color);				
 				break;
 			case PAWN_4:
 			case PAWN_5:
 			case PAWN_6:
 			case PAWN_7:
-				promo = new Bishop(PieceType.BISHOP_R, color);
+				promo = new Bishop(PieceType.BISHOP_R, piece.pieceType,color);
 				break;
 			default:
 				break;
@@ -153,35 +154,35 @@ public final class PieceSet {
 
 			break;
 		case KNIGHT_R:
-			switch (pawnPiece.pieceType) {
+			switch (piece.pieceType) {
 			case PAWN_0:
 			case PAWN_1:
 			case PAWN_2:
 			case PAWN_3:
-				promo = new Knight(PieceType.KNIGHT_L, color);
+				promo = new Knight(PieceType.KNIGHT_L, piece.pieceType, color);
 				break;
 			case PAWN_4:
 			case PAWN_5:
 			case PAWN_6:
 			case PAWN_7:
-				promo = new Knight(PieceType.KNIGHT_R, color);
+				promo = new Knight(PieceType.KNIGHT_R, piece.pieceType, color);
 				break;
 			default:
 				break;
 			}
 		case ROOK_R:
-			switch (pawnPiece.pieceType) {
+			switch (piece.pieceType) {
 			case PAWN_0:
 			case PAWN_1:
 			case PAWN_2:
 			case PAWN_3:
-				promo = new Rook(PieceType.ROOK_L, color);
+				promo = new Rook(PieceType.ROOK_L, piece.pieceType, color);
 				break;
 			case PAWN_4:
 			case PAWN_5:
 			case PAWN_6:
 			case PAWN_7:
-				promo = new Rook(PieceType.ROOK_R, color);
+				promo = new Rook(PieceType.ROOK_R, piece.pieceType, color);
 				break;
 			default:
 				break;
@@ -194,11 +195,11 @@ public final class PieceSet {
 		
 		if (promo != null) {
 			promo.makeAlive();
-			promo.posRef = pawnPiece.posRef;
-			pieceArray[pawnPiece.pieceType.ordinal()] = promo;			
+			promo.posRef = piece.posRef;
+			pieceArray[piece.pieceType.ordinal()] = promo;			
 		}
 		
-		return promo == null ? pawnPiece : promo;
+		return promo == null ? piece : promo;
 	}
 
 	/**
@@ -207,15 +208,42 @@ public final class PieceSet {
 	@Override
 	public String toString() {
 		String str = "";
-		str += "PIECESET LOG (" + color + ") --------------------------------\n";
-		str += "Symbol\tIdentifier\t\tPosition\tAlive\n";
-		str += "-----------------------------------------------------\n";
+		str += "PIECESET LOG (" + color + ") ------------------------------------------------\n";
+		str += "Symbol\tIdentifier\t\tPosition\tAlive\tPromoted From\n";
+		str += "---------------------------------------------------------------------\n";
 
+	
 		for (int i = 0; i < pieceArray.length; i++) {
 			str += pieceArray[i].toString() + "\t";
 			str += pieceArray[i].identifier + "\t";
 			str += pieceArray[i].posRef + "\t\t";
-			str += pieceArray[i].alive;
+			str += pieceArray[i].alive + "\t";
+			
+			
+			if (pieceArray[i] instanceof Queen) {
+				Queen q = (Queen)(pieceArray[i]);
+				PieceType promoFrom = q.getPromotionPawnType();
+				
+				str += promoFrom == null ? "(original)" : promoFrom;
+			} else if (pieceArray[i] instanceof Bishop) {
+				Bishop b = (Bishop)(pieceArray[i]);
+				
+				PieceType promoFrom = b.getPromotionPawnType();
+				
+				str += promoFrom == null ? "(original)" : promoFrom;
+			} else if (pieceArray[i] instanceof Knight) {
+				Knight n = (Knight)(pieceArray[i]);
+				
+				PieceType promoFrom = n.getPromotionPawnType();
+				
+				str += promoFrom == null ? "(original)" : promoFrom;
+			} else if (pieceArray[i] instanceof Rook) {
+				Rook r = (Rook)(pieceArray[i]);
+				
+				PieceType promoFrom = r.getPromotionPawnType();
+				
+				str += promoFrom == null ? "(original)" : promoFrom;
+			}
 
 			str += "\n";
 		}

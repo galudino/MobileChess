@@ -21,6 +21,8 @@ import model.game.Position;
  * @author patricknogaj
  */
 public final class Bishop extends Piece {
+	
+	private PieceType promotionPawnType;
 
 	/**
 	 * Parameterized constructor
@@ -28,11 +30,13 @@ public final class Bishop extends Piece {
 	 * @param pieceType the PieceType to assign
 	 * @param color     the Color of a Player's PieceSet
 	 */
-	public Bishop(PieceType pieceType, PieceType.Color color) {
+	public Bishop(PieceType pieceType, PieceType promotionPawnType, PieceType.Color color) {
 		super(color);
 
 		this.pieceType = pieceType.equals(PieceType.BISHOP_R)
 				|| pieceType.equals(PieceType.BISHOP_L) ? pieceType : null;
+		
+		this.promotionPawnType = promotionPawnType;
 
 		if (this.pieceType == null) {
 			System.err.println("ERROR: Set this piece to either "
@@ -44,6 +48,16 @@ public final class Bishop extends Piece {
 			identifier += pieceType.equals(PieceType.BISHOP_R) ? " (right)"
 					: " (left)";
 		}
+	}
+	
+	/**
+	 * Returns null if an original Piece, but if from promotion -- return
+	 * a PieceType.PAWN
+	 * 
+	 * @return the former PAWN type of this Bishop, if from a promotion
+	 */
+	public PieceType getPromotionPawnType() {
+		return promotionPawnType;
 	}
 
 	/*

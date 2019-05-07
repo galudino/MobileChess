@@ -21,6 +21,8 @@ import model.game.Position;
  * @author patricknogaj
  */
 public final class Knight extends Piece {
+	
+	private PieceType promotionPawnType;
 
 	/**
 	 * Parameterized constructor
@@ -28,11 +30,13 @@ public final class Knight extends Piece {
 	 * @param pieceType the PieceType to assign
 	 * @param color     the Color of a Player's PieceSet
 	 */
-	public Knight(PieceType pieceType, PieceType.Color color) {
+	public Knight(PieceType pieceType, PieceType promotionPawnType, PieceType.Color color) {
 		super(color);
 
 		this.pieceType = pieceType.equals(PieceType.KNIGHT_R)
 				|| pieceType.equals(PieceType.KNIGHT_L) ? pieceType : null;
+		
+		this.promotionPawnType = promotionPawnType;
 
 		if (this.pieceType == null) {
 			System.err.println("ERROR: Set this piece to either "
@@ -44,6 +48,16 @@ public final class Knight extends Piece {
 			identifier += pieceType.equals(PieceType.KNIGHT_R) ? " (right)"
 					: " (left)";
 		}
+	}
+	
+	/**
+	 * Returns null if an original Piece, but if from promotion -- return
+	 * a PieceType.PAWN
+	 * 
+	 * @return the former PAWN type of this Knight, if from a promotion
+	 */
+	public PieceType getPromotionPawnType() {
+		return promotionPawnType;
 	}
 
 	/*

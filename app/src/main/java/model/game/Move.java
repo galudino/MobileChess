@@ -12,7 +12,12 @@ package model.game;
 
 import java.time.LocalTime;
 
+import model.PieceType;
 import model.chess_set.Piece;
+import model.chess_set.piecetypes.Bishop;
+import model.chess_set.piecetypes.Knight;
+import model.chess_set.piecetypes.Queen;
+import model.chess_set.piecetypes.Rook;
 
 /**
  * Represents a move within a Chess game, for logging purposes. Instances of
@@ -26,6 +31,7 @@ public class Move {
 
 	private Position startPos;
 	private Position endPos;
+	private PieceType promotedFrom;
 
 	private LocalTime localTime;
 
@@ -38,11 +44,14 @@ public class Move {
 	 * @param startPos   the starting Position of piece
 	 * @param endPos     the ending Position of piece
 	 * @param moveNumber the sequential move number within the game
+	 * @param promotedFrom	if piece is a Pawn, and a promotion took place, what pawn type
 	 */
-	public Move(Piece piece, Position startPos, Position endPos, int moveNumber) {
+	public Move(Piece piece, Position startPos, Position endPos, 
+			int moveNumber, PieceType promotedFrom) {
 		this.piece = piece;
 		this.startPos = startPos;
 		this.endPos = endPos;
+		this.promotedFrom = promotedFrom;
 
 		this.moveNumber = moveNumber;
 		localTime = LocalTime.now();
@@ -76,6 +85,15 @@ public class Move {
 	}
 	
 	/**
+	 * Accessor method to retrieve the former pawn type of a promoted piece
+	 * 
+	 * @return the PieceType (PAWN) of a promotee
+	 */
+	public PieceType getPromotedFrom() {
+		return promotedFrom;
+	}
+	
+	/**
 	 * Accessor method to retrieve the LocalTime of a Move
 	 * 
 	 * @return the LocalTime object associated with a Move
@@ -86,8 +104,27 @@ public class Move {
 	
 	@Override
 	public String toString() {
+		String str = "(not promoted)";
+		if (piece instanceof Queen) {
+			Queen q = (Queen)(piece);
+			
+			str += "\t" + q.getPromotionPawnType();
+		} else if (piece instanceof Bishop) {
+			Bishop b = (Bishop)(piece);
+			
+			str += "\t" + b.getPromotionPawnType();
+		} else if (piece instanceof Knight) {
+			Knight n = (Knight)(piece);
+			
+			str += "\t" + n.getPromotionPawnType();
+		} else if (piece instanceof Rook) {
+			Rook r = (Rook)(piece);
+			
+			str += "\t" + r.getPromotionPawnType();
+		}
+		
 		return localTime.toString() + "\t" + moveNumber + "\t" + piece
-				+ "\t" + startPos + "\t" + endPos;
+				+ "\t" + startPos + "\t" + endPos + "\t" + str;
 	}
 }
 

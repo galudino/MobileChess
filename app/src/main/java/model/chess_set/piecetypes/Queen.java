@@ -21,17 +21,24 @@ import model.game.Position;
  * @author patricknogaj
  */
 public final class Queen extends Piece {
+	
+	private PieceType promotionPawnType;
 
 	/**
 	 * Parameterized constructor
 	 *
 	 * @param color the Color of a Player's PieceSet
 	 */
-	public Queen(PieceType.Color color) {
+	public Queen(PieceType.Color color, PieceType promotionPawnType) {
 		super(color);
 		pieceType = PieceType.QUEEN;
-
+		this.promotionPawnType = promotionPawnType;
+		
 		identifier += "Queen     ";
+	}
+	
+	public PieceType getPromotionPawnType() {
+		return promotionPawnType;
 	}
 
 	/*
