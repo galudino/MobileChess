@@ -356,13 +356,33 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             debug.log("ChessActivity::movePiece", "Game is no longer active.");
         }
 
+        PieceType promotion = null;
+        /**
+         * Examine oldFile, oldRank, newFile, newRank to see if a promotion
+         * can take place for a player. If so,
+         *
+         * Give the player an opportunity to choose a promote type.
+         */
+        boolean promotionQualifies = game.canPromote(oldFile, oldRank, newFile, newRank);
+
+        /**
+         * A PieceType is returned to promotion when a user selects
+         * their promotion piece type in doPromotion().
+         */
+        if (promotionQualifies) {
+            promotion = doPromotion();
+        }
+
         oldTag = (String) board[oldFile][oldRank].getTag();
         newTag = (String) board[newFile][newRank].getTag();
 
         String inputRequest =
                 translateTags(oldFile, oldRank,
                         newFile, newRank,
+                        promotion,
                         drawRequested, drawAccepted, resignRequested);
+
+        System.out.println(inputRequest + " was the input request");
 
         game.readInput(inputRequest.trim());
 
@@ -387,6 +407,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
 
             if (game.didPromoteWhite() || game.didPromoteBlack()) {
+                // this will change the GUI pawn on the board to the desired
+                // promotion piece.
                 promotion(newFile, newRank);
             }
 
@@ -420,6 +442,22 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    /**
+     * TODO GUI NOTIFICATION OF PROMOTION
+     *
+     * @return
+     */
+    private PieceType doPromotion() {
+        PieceType pieceType = PieceType.KNIGHT_R;
+
+        /**
+         * USER makes decision here.
+         */
+
+
+        return pieceType;
+    }
+
 
 
     /**
@@ -430,16 +468,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @param newRank rank where a promotable pawn resides
      */
     private void promotion(int newFile, int newRank) {
-
-        // TODO doPromotion() -- will default to QUEEN for now.
-        PieceType pieceType = doPromotion();
-
-        /**
-         * Once the user makes a selection of their promotion preference
-         * in doPromotion(), the default promotion performed within Game.java,
-         * Board.java, and PieceSet.java will be overridden.
-         */
-        game.overridePawnPromotion(new Position(newFile, newRank), pieceType);
 
         /**
          *  The string representation of a Piece implies its PieceType,
@@ -489,52 +517,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     }
 
     /**
-     * TODO GUI NOTIFICATION OF PROMOTION
-     *
-     * @return
-     */
-    private PieceType doPromotion() {
-        PieceType pieceType = PieceType.QUEEN;
-
-
-        /**
-         * USER makes decision here.
-         */
-
-
-        /**
-         * Let the user choose their desired pieceType.
-         * pieceType will then be assigned to
-         *  PieceType.QUEEN,
-         *  PieceType.BISHOP_R,
-         *  PieceType.ROOK_R,
-         *  PieceType.KNIGHT_R.
-         *
-         * If the PAWN is queen-side,
-         * The PieceType varieties with a _L (B, R, or K) will be used instead.
-         */
-
-        switch (game.getPawnPromoteType()) {
-            case PAWN_0:
-            case PAWN_1:
-            case PAWN_2:
-            case PAWN_3:
-                if (pieceType.equals(PieceType.BISHOP_R)) {
-                    pieceType = PieceType.BISHOP_L;
-                } else if (pieceType.equals(PieceType.ROOK_R)) {
-                    pieceType = PieceType.ROOK_R;
-                } else if (pieceType.equals(PieceType.KNIGHT_R)) {
-                    pieceType = PieceType.KNIGHT_L;
-                }
-                break;
-            default:
-                break;
-        }
-
-        return pieceType;
-    }
-
-    /**
      *
      * @param oldFile
      * @param oldRank
@@ -550,6 +532,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                  int oldRank,
                                  int newFile,
                                  int newRank,
+                                 PieceType promotion,
                                  boolean drawRequested,
                                  boolean drawAccepted,
                                  boolean resignRequested) {
@@ -559,14 +542,47 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         char nFile = intToChar(newFile);
         int nRank = newRank + 1;
 
+        char chPromo = '!';
+
+        if (promotion != null) {
+            switch (promotion) {
+                case QUEEN:
+                    chPromo = 'Q';
+                    break;
+                case BISHOP_R:
+                case BISHOP_L:
+                    chPromo = 'B';
+                    break;
+                case KNIGHT_R:
+                case KNIGHT_L:
+                    chPromo = 'N';
+                    break;
+                case ROOK_R:
+                case ROOK_L:
+                    chPromo = 'R';
+                    break;
+                default:
+                    break;
+            }
+        }
+
         String result = String.format("%c%d %c%d", oFile, oRank, nFile, nRank);
 
+        /**
+         * Concatenate/replace the string a special situation, like:
+         * draw request: += " draw?"
+         * draw acceptance: += " draw"
+         * resign: = "resign"
+         * promotion: += " " + chPromo
+         */
         if (drawRequested) {
-            result += " draw?";
+            result += " draw?";             // append " draw?" for a draw request
         } else if (drawAccepted) {
-            result = "draw";
+            result = "draw";                // replace with "draw" for a draw acceptance
         } else if (resignRequested) {
-            result = "resign";
+            result = "resign";              // replace with "resign" for a resign
+        } else if (chPromo != '!') {
+            result += " " + chPromo;        // append " " + chPromo for a promotion
         }
 
         return result;

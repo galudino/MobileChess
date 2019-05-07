@@ -170,6 +170,8 @@ public final class PieceSet {
 			default:
 				break;
 			}
+
+			break;
 		case ROOK_R:
 			switch (piece.pieceType) {
 			case PAWN_0:
@@ -187,6 +189,8 @@ public final class PieceSet {
 			default:
 				break;
 			}
+
+			break;
 		default:
 			System.err.println(
 					"Can only promote to QUEEN, BISHOP, " + "KNIGHT, or ROOK.");
