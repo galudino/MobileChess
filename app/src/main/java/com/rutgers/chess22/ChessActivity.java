@@ -10,7 +10,9 @@
  */
 package com.rutgers.chess22;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -203,6 +205,29 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                         if (game.isDidDraw()) {
                             debug.log("[ChessActivity::onClick]",
                                     "*** END GAME HERE BY DRAW ***");
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                            builder.setCancelable(true);
+                            builder.setTitle("Game Over!");
+                            builder.setMessage("The winner is: NOBODY.\nWould you like to save this game?");
+                            builder.setPositiveButton("Confirm",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    });
+                            builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    System.out.println("GOING TO MAIN MENU...");
+                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                            return;
                         }
                     }
 
@@ -223,6 +248,28 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                         if (game.isDidResign()) {
                             debug.log("[ChessActivity::onClick]",
                                     "*** END GAME HERE BY RESIGNATION ***");
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                            builder.setCancelable(true);
+                            builder.setTitle("Game Over!");
+                            builder.setMessage("The winner is: " + game.getGameWinner() + ".\nWould you like to save this game?");
+                            builder.setPositiveButton("Yes",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    });
+                            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    System.out.println("GOING TO MAIN MENU...");
+                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                            return;
                         }
                     }
 
@@ -307,7 +354,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     protected void movePiece(int oldFile, int oldRank, int newFile, int newRank) {
         if (game.isActive() == false) {
             debug.log("ChessActivity::movePiece", "Game is no longer active.");
-            return;
         }
 
         oldTag = (String) board[oldFile][oldRank].getTag();
