@@ -449,15 +449,17 @@ public final class Game {
 		
 		Piece piece = 
 				pieceSet.getPieceByPosition(new Position(oldFile, oldRank));
-		
-		if (piece.isPawn()) {
-			if (piece.isWhite()) {
-				if (newRank == 7) {
-					canPromote = true;
-				}
-			} else {
-				if (newRank == 0) {
-					canPromote = true;
+
+		if (piece != null) {
+			if (piece.isPawn()) {
+				if (piece.isWhite()) {
+					if (newRank == 7) {
+						canPromote = true;
+					}
+				} else {
+					if (newRank == 0) {
+						canPromote = true;
+					}
 				}
 			}
 		}
