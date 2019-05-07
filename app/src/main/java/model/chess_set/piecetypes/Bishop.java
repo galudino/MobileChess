@@ -68,6 +68,7 @@ public final class Bishop extends Piece {
 	 */
 	@Override
 	public boolean isMoveLegal(Cell[][] cell, Position pos) {
+		/*
 		boolean result = true;
 		
 		boolean movingRight = false;
@@ -94,13 +95,7 @@ public final class Bishop extends Piece {
 		
 		boolean pieceFoundAlongPath = false;
 		
-		/**
-		 * "Function" of Bishop's movement has a slope m such that
-		 * m == 1 (moving diagonally right) || m == -1 (moving diagonally left)
-		 * 
-		 * It cannot jump over other pieces.
-		 */
-		
+
 		result = (equalRank || equalFile) ? false : result;
 		result = (deltaRank != deltaFile) ? false : result;
 		
@@ -126,6 +121,81 @@ public final class Bishop extends Piece {
 			x += colOffset;
 			y += rowOffset;
 		}
+
+		return result;
+		*/
+		
+		
+		boolean result = true;
+
+		if (this.posRef.getRank() == pos.getRank()
+				|| this.posRef.getFile() == pos.getFile()) {
+			result = false;
+		}
+
+		if (Math.abs(this.posRef.getRank() - pos.getRank()) != Math
+				.abs(this.posRef.getFile() - pos.getFile())) {
+			result = false;
+		}
+
+		int rowOffset, colOffset;
+		boolean movingRight = false;
+		
+		if (this.posRef.getFile() < pos.getFile()) {
+			// 1 to the right
+			colOffset = 1;
+			movingRight = true;
+		} else {
+			// 1 to the left
+			colOffset = -1;
+		}
+
+		if (this.posRef.getRank() < pos.getRank()) {
+			// Moving 1 up
+			rowOffset = 1;
+		} else {
+			// Moving 1 down
+			rowOffset = -1;
+		}
+		
+		if (movingRight) {
+			for (int x = this.posRef.getFile() + colOffset, 
+					y = this.posRef.getRank() + rowOffset;
+					x < pos.getFile(); x += colOffset) {
+				if (cell[x][y].getPiece() != null) {
+					result = false;
+					break;
+				}
+				
+				y += rowOffset;
+			}
+		} else {
+			for (int x =  this.posRef.getFile() + colOffset, 
+					y = this.posRef.getRank() + rowOffset;
+					x > pos.getFile(); x += colOffset) {
+				if (cell[x][y].getPiece() != null) {
+					result = false;
+					break;
+				}
+				
+				y += rowOffset;
+			}
+		}
+		
+
+		/* ORIGINAL CODE
+		for (int x = this.posRef.getFile() + colOffset, 
+					y = this.posRef.getRank() + rowOffset; 
+				x != pos.getFile(); 
+				x += colOffset) {			
+			if (cell[x][y].getPiece() != null) {
+				result = false;
+				break;
+			}
+
+			y += rowOffset;
+		}
+		*/
 
 		return result;
 	}
