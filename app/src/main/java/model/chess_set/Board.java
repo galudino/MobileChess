@@ -599,10 +599,11 @@ public final class Board {
 	 */
 	public Piece promotePawn(Piece piece, PieceSet pieceSet,
 			Position newPosition, PieceType promoType) {
-		promoteWhite = promoType != null && piece.isWhite() && piece.isPawn()
+		
+		promoteWhite = promoType != null && piece.isWhite()
 				&& newPosition.getRank() == 7;
 
-		promoteBlack = promoType != null && piece.isBlack() && piece.isPawn()
+		promoteBlack = promoType != null && piece.isBlack()
 				&& newPosition.getRank() == 0;
 
 		if (promoteWhite || promoteBlack) {
@@ -610,7 +611,7 @@ public final class Board {
 					: PieceType.Color.BLACK;
 
 			pawnPromoteType = piece.pieceType;
-			piece = pieceSet.promotePawn((Piece) (piece), promoType, color);
+			piece = pieceSet.promotePawn(piece, promoType, color);
 		}
 
 		return piece;

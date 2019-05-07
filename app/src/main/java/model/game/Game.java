@@ -450,13 +450,30 @@ public final class Game {
 	 * @param promoteType the desired PieceType for promotion
 	 */
 	public void overridePawnPromotion(Position newPos, PieceType promoteType) {
+	
 		Move lastMove = getLastMove();
 		Piece piece = lastMove.getLastPiece();
 		
 		PieceSet pieceSet = 
 				piece.isWhite() ? white.pieceSetRef : black.pieceSetRef;
+		
 
 		board.promotePawn(piece, pieceSet, newPos, promoteType);
+		
+		/*
+		Move lastMove = getLastMove();
+		
+		PieceType.Color color = lastMove.getLastPiece().isWhite() 
+				? PieceType.Color.WHITE : PieceType.Color.BLACK;
+		
+		PieceSet pieceSet = 
+				color.equals(PieceType.Color.WHITE) ? 
+						white.pieceSetRef : black.pieceSetRef;
+		
+		Piece piece = pieceSet.getPieceByPosition(newPos);
+		
+		board.promotePawn(piece, pieceSet, newPos, promoteType);
+		*/
 	}
 
 	/**
