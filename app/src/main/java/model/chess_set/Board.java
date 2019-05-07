@@ -15,6 +15,7 @@ import java.util.List;
 
 import model.PieceType;
 import model.chess_set.piecetypes.King;
+import model.chess_set.piecetypes.Pawn;
 import model.game.Move;
 import model.game.Position;
 
@@ -314,7 +315,113 @@ public final class Board {
 
 		return lastKill;
 	}
+	
+	/**
+	 * Called by Game::undoMove, this will undo the last move in the move list,
+	 * and if the last move is paired with a kill, that kill is undone as well
+	 * 
+	 * @param move the last move executed
+	 */
+	public void undoMovePiece(Move move) {
+		Position startPos = move.getStartPosition();
+		Position endPos = move.getEndPosition();
+		
+		Piece piece = move.getLastPiece();
+		
+		PieceType promotedFrom = move.getPromotedFrom();
+		PieceType.Color thisColor = 
+				piece.isWhite() ? PieceType.Color.WHITE : PieceType.Color.BLACK;
+		
+		Cell startPosCell = getCell(startPos);
+		Cell endPosCell = getCell(endPos);
+		
+		Piece startPosCellPiece = startPosCell.getPiece();
+		Piece endPosCellPiece = endPosCell.getPiece();
+		
+		
+		Move lastKill = getLastKill();
+		
+		Position startPosKill = getLastKill().getStartPosition();
+		Position endPosKill = getLastKill().getEndPosition();
+		
+		Piece pieceKill = lastKill.getLastPiece();
+		
+		PieceType.Color colorKill = 
+				piece.isWhite() ? PieceType.Color.BLACK : PieceType.Color.WHITE;
+		
+		
+		/**
+		 * Start by reversing a move.
+		 */
+		moveList.remove(move);			// remove the move from the list
+		--moveCounter;					// decrement the move counter
+		
+		piece.posRef = startPos;		// restore the former position to piece
+		
+		endPosCell.pieceRef = null;		// remove piece from old end position
+		startPosCell.pieceRef = piece;  // return piece to former start position
+		
+		
+		/**
+		 * Then reverse a kill.
+		 */
+		if (move.getLocalTime().equals(lastKill.getLocalTime())) {
+			moveList.remove(lastKill);	// remove the kill from the list
+			--killCounter;				// decrement the kill counter
+			
+			pieceKill.posRef = startPosKill;	// pieceKill's former pos
+			
+			endPosCell.pieceRef = pieceKill;	// put pieceKill back on board
+			
+			pieceKill.makeAlive();				// make the piece "alive"
+		}
+		
+		
+		/*
+		if (result) {
+			piece = promotePawn(piece, pieceSet, newPosition, promoType);
 
+			if (kingSafe) {
+				// This statement nullifies any reference to a Piece
+				// for this Cell object. (Next line: piece will be
+				// reassigned
+				// to the newPositionCell.piece field).
+				oldPositionCell.pieceRef = null;
+
+				// This statement affects what Pieces print
+				// at which cells when board.toString() is called.
+				newPositionCell.pieceRef = piece;
+
+				// This statement affects the internal position
+				// data within a Piece object.
+				piece.posRef = newPosition;
+			} else {
+				return false;
+			}
+		}
+
+		++moveCounter;
+
+		Move newestMove = new Move(piece, oldPositionCell.loc, piece.posRef,
+				moveCounter, pawnPromoteType);
+		moveList.add(newestMove);
+		
+		pawnPromoteType = null;
+
+		if (other != null) {
+			if (other.isAlive() == false) {
+				--killCounter;
+				Move death = new Move(other, piece.posRef, null,
+						killCounter, null);
+				moveList.add(death);
+			}
+		}
+		*/
+		
+		
+		
+	}
+	
 	/**
 	 * Requested Piece will be moved to a Cell corresponding to the file and
 	 * rank of newPosition, provided newPosition is a legal move for a given

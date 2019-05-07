@@ -773,6 +773,12 @@ public final class Game {
 	 *              will end the game and the requester loses
 	 */
 	public void readInput(String input) {
+		if (input.equals("undo")) {
+			output = "";
+			undoMove();
+			return;
+		}
+		
 		if (!input.equals("save")) {
 			if (!active) {
 				System.err.println("Game no longer active: " + gameWinner
@@ -782,9 +788,6 @@ public final class Game {
 		} else if (input.equals("save")) {
 			output = "";
 			saveGame();
-			return;
-		} else if (input.equals("undo")) {
-			undoMove();
 			return;
 		}
 
@@ -882,10 +885,41 @@ public final class Game {
 		willResign = false;
 	}
 	
+	/**
+	 * Undoes the last move in the move list --
+	 * if the last move is paired with a kill,
+	 * that kill is undone as well.
+	 * 
+	 * The undo caller forfeits their turn to the player who
+	 * had their previous move and/or kill undone.
+	 */
 	private void undoMove() {
-		System.out.println("** UNDO **");
+		if (getLastMove() == null) {
+			System.err.println("\nNo moves to undo!");
+			return;
+		}
+		
+		System.out.println("\n** UNDO **\n");
+		
+		// Undo the previous move made by the opponent 
+		// (opposite color of the caller)
+		board.undoMovePiece(getLastMove());
+		
+		System.out.println(boardToString());
+		
+		printBlackSet();
+		printWhiteSet();
+		
+		printMoveLog();
+		
+		// Change the turn to the opposite caller.
+		whitesMove = whitesMove ? false : true;
+		
 	}
 	
+	/**
+	 * Saves the current state of the game, regardless if active or not
+	 */
 	private void saveGame() {
 		System.out.println("\n[State of game saved at " + LocalTime.now() + "]");
 	}

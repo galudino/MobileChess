@@ -103,6 +103,24 @@ public class Move {
 	}
 	
 	@Override
+	public boolean equals(Object o) {
+		if (o instanceof Move) {
+			Move m = (Move)(o);
+			
+			if (piece.equals(m.piece) 
+					&& startPos.equals(m.startPos) 
+					&& localTime.equals(m.localTime) 
+					&& moveNumber == m.moveNumber) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+	
+	@Override
 	public String toString() {
 		String str = "(not promoted)";
 		if (piece instanceof Queen) {
