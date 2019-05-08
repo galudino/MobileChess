@@ -260,12 +260,15 @@ public final class Board {
 			lastMove = moveList.get(moveList.size() - i);
 
 			if (lastMove.getEndPosition() == null) {
+				// if getEndPosition() == null, this 'move' was a KILL.
+				// we continue iterating until we find a non-kill.
 				nullValue = true;
 				++i;
 			} else {
 				nullValue = false;
 			}
 
+			// safety precaution, bounds check.
 			if (i > moveList.size()) {
 				break;
 			}
@@ -320,106 +323,74 @@ public final class Board {
 	 * Called by Game::undoMove, this will undo the last move in the move list,
 	 * and if the last move is paired with a kill, that kill is undone as well
 	 * 
-	 * @param move the last move executed
 	 */
-	public void undoMovePiece(Move move) {
-		Position startPos = move.getStartPosition();
-		Position endPos = move.getEndPosition();
+	public void undoMovePiece() {
+		Move lastMove = getLastMove();
+		Move lastKill = getLastKill();
+	
+		Position startPosKill = lastKill.getStartPosition();
+		Position startPos = lastMove.getStartPosition();
+		Position endPos = lastMove.getEndPosition();
 		
-		Piece piece = move.getLastPiece();
-		
-		PieceType promotedFrom = move.getPromotedFrom();
+		Piece piece = lastMove.getLastPiece();
+		Piece pieceKill = lastKill.getLastPiece();
+			
+		PieceType promotedFrom = lastMove.getPromotedFrom();
 		PieceType.Color thisColor = 
 				piece.isWhite() ? PieceType.Color.WHITE : PieceType.Color.BLACK;
 		
 		Cell startPosCell = getCell(startPos);
 		Cell endPosCell = getCell(endPos);
-		
-		Piece startPosCellPiece = startPosCell.getPiece();
-		Piece endPosCellPiece = endPosCell.getPiece();
-		
-		
-		Move lastKill = getLastKill();
-		
-		Position startPosKill = getLastKill().getStartPosition();
-		Position endPosKill = getLastKill().getEndPosition();
-		
-		Piece pieceKill = lastKill.getLastPiece();
-		
-		PieceType.Color colorKill = 
-				piece.isWhite() ? PieceType.Color.BLACK : PieceType.Color.WHITE;
-		
-		
+				
 		/**
 		 * Start by reversing a move.
 		 */
-		moveList.remove(move);			// remove the move from the list
+		piece.posRef = startPos;		// restore the former position to piece
+
+		endPosCell.pieceRef = null;		// remove piece from old end position
+
+		startPosCell.pieceRef = piece;  // return piece to former start position
+				
+		moveList.remove(lastMove);			// remove the move from the list
 		--moveCounter;					// decrement the move counter
 		
-		piece.posRef = startPos;		// restore the former position to piece
-		
-		endPosCell.pieceRef = null;		// remove piece from old end position
-		startPosCell.pieceRef = piece;  // return piece to former start position
-		
+		if (promotedFrom != null) {
+			// create a new pawn
+			Pawn pawn = new Pawn(promotedFrom, thisColor);
+			
+			// assign the pawn position to its former position
+			// before promotion
+			pawn.posRef = startPos;
+			
+			// piece is now pawn
+			piece = pawn;
+			
+			// assign cell's piece reference to piece
+			startPosCell.pieceRef = piece;
+			
+			
+			piece.alive = true;
+			
+			
+			PieceSet pieceSet = pawn.isWhite() ? whiteSet : blackSet;
+			
+			// Restore the promoted pawn to its previous form
+			pieceSet.demotePawn(pawn);
+		}
 		
 		/**
 		 * Then reverse a kill.
 		 */
-		if (move.getLocalTime().equals(lastKill.getLocalTime())) {
-			moveList.remove(lastKill);	// remove the kill from the list
-			--killCounter;				// decrement the kill counter
-			
+		if (lastMove.getLocalTime().equals(lastKill.getLocalTime())) {			
 			pieceKill.posRef = startPosKill;	// pieceKill's former pos
 			
 			endPosCell.pieceRef = pieceKill;	// put pieceKill back on board
 			
 			pieceKill.makeAlive();				// make the piece "alive"
-		}
-		
-		
-		/*
-		if (result) {
-			piece = promotePawn(piece, pieceSet, newPosition, promoType);
-
-			if (kingSafe) {
-				// This statement nullifies any reference to a Piece
-				// for this Cell object. (Next line: piece will be
-				// reassigned
-				// to the newPositionCell.piece field).
-				oldPositionCell.pieceRef = null;
-
-				// This statement affects what Pieces print
-				// at which cells when board.toString() is called.
-				newPositionCell.pieceRef = piece;
-
-				// This statement affects the internal position
-				// data within a Piece object.
-				piece.posRef = newPosition;
-			} else {
-				return false;
-			}
-		}
-
-		++moveCounter;
-
-		Move newestMove = new Move(piece, oldPositionCell.loc, piece.posRef,
-				moveCounter, pawnPromoteType);
-		moveList.add(newestMove);
-		
-		pawnPromoteType = null;
-
-		if (other != null) {
-			if (other.isAlive() == false) {
-				--killCounter;
-				Move death = new Move(other, piece.posRef, null,
-						killCounter, null);
-				moveList.add(death);
-			}
-		}
-		*/
-		
-		
-		
+			
+			moveList.remove(lastKill);	// remove the kill from the list
+			--killCounter;				// decrement the kill counter
+		}		
 	}
 	
 	/**
@@ -442,7 +413,15 @@ public final class Board {
 		Cell newPositionCell = getCell(newPosition);
 
 		boolean pieceMoveLegal = piece.isMoveLegal(cell, newPosition);
-
+		
+		/* Prints state of board (cell[][]) line by line
+		for (int i = 0; i < cell.length; i++) {
+			for (int j = 0; j < cell[i].length; j++) {
+				System.out.println(cell[i][j].loc + " " + cell[i][j].pieceRef);
+			}
+		}
+		*/
+	
 		King king = null;
 
 		if (piece.isBlack()) {

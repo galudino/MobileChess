@@ -36,18 +36,19 @@ public class Move {
 	private LocalTime localTime;
 
 	private int moveNumber;
-	
+
 	/**
 	 * Parameterized constructor
 	 * 
-	 * @param piece      the Piece participating in a Move
-	 * @param startPos   the starting Position of piece
-	 * @param endPos     the ending Position of piece
-	 * @param moveNumber the sequential move number within the game
-	 * @param promotedFrom	if piece is a Pawn, and a promotion took place, what pawn type
+	 * @param piece        the Piece participating in a Move
+	 * @param startPos     the starting Position of piece
+	 * @param endPos       the ending Position of piece
+	 * @param moveNumber   the sequential move number within the game
+	 * @param promotedFrom if piece is a Pawn, and a promotion took place, what
+	 *                     pawn type
 	 */
-	public Move(Piece piece, Position startPos, Position endPos, 
-			int moveNumber, PieceType promotedFrom) {
+	public Move(Piece piece, Position startPos, Position endPos, int moveNumber,
+			PieceType promotedFrom) {
 		this.piece = piece;
 		this.startPos = startPos;
 		this.endPos = endPos;
@@ -83,7 +84,7 @@ public class Move {
 	public Position getEndPosition() {
 		return endPos;
 	}
-	
+
 	/**
 	 * Accessor method to retrieve the former pawn type of a promoted piece
 	 * 
@@ -92,7 +93,7 @@ public class Move {
 	public PieceType getPromotedFrom() {
 		return promotedFrom;
 	}
-	
+
 	/**
 	 * Accessor method to retrieve the LocalTime of a Move
 	 * 
@@ -101,15 +102,14 @@ public class Move {
 	public LocalTime getLocalTime() {
 		return localTime;
 	}
-	
+
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof Move) {
-			Move m = (Move)(o);
-			
-			if (piece.equals(m.piece) 
-					&& startPos.equals(m.startPos) 
-					&& localTime.equals(m.localTime) 
+			Move m = (Move) (o);
+
+			if (piece.equals(m.piece) && startPos.equals(m.startPos)
+					&& localTime.equals(m.localTime)
 					&& moveNumber == m.moveNumber) {
 				return true;
 			} else {
@@ -119,30 +119,35 @@ public class Move {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public String toString() {
-		String str = "(not promoted)";
-		if (piece instanceof Queen) {
-			Queen q = (Queen)(piece);
-			
-			str += "\t" + q.getPromotionPawnType();
-		} else if (piece instanceof Bishop) {
-			Bishop b = (Bishop)(piece);
-			
-			str += "\t" + b.getPromotionPawnType();
-		} else if (piece instanceof Knight) {
-			Knight n = (Knight)(piece);
-			
-			str += "\t" + n.getPromotionPawnType();
-		} else if (piece instanceof Rook) {
-			Rook r = (Rook)(piece);
-			
-			str += "\t" + r.getPromotionPawnType();
+		String str = "";
+
+		if (promotedFrom != null) {
+			str = "(not promoted)";
+			if (piece instanceof Queen) {
+				Queen q = (Queen) (piece);
+
+				str = q.getPromotionPawnType().toString();
+			} else if (piece instanceof Bishop) {
+				Bishop b = (Bishop) (piece);
+
+				str = b.getPromotionPawnType().toString();
+			} else if (piece instanceof Knight) {
+				Knight n = (Knight) (piece);
+
+				str = n.getPromotionPawnType().toString();
+			} else if (piece instanceof Rook) {
+				Rook r = (Rook) (piece);
+
+				str = r.getPromotionPawnType().toString();
+			} else {
+				str = "";
+			}
 		}
-		
-		return localTime.toString() + "\t" + moveNumber + "\t" + piece
-				+ "\t" + startPos + "\t" + endPos + "\t" + str;
+
+		return localTime.toString() + "\t" + moveNumber + "\t" + piece + "\t"
+				+ startPos + "\t" + endPos + "\t" + str;
 	}
 }
-

@@ -23,7 +23,7 @@ import model.chess_set.Piece;
 import model.chess_set.PieceSet;
 
 final class GameReplay {
-	
+
 }
 
 /**
@@ -129,7 +129,7 @@ public final class Game {
 		inputFile = null;
 		fileReader = null;
 		bufferedReader = null;
-		
+
 		gameStartTime = LocalDateTime.now();
 		gameEndTime = null;
 
@@ -154,7 +154,7 @@ public final class Game {
 		togglePostMoveLog();
 		togglePieceSetLog();
 	}
-	
+
 	/**
 	 * Accessor to retrieve a game's start time
 	 * 
@@ -163,20 +163,20 @@ public final class Game {
 	public LocalDateTime getStartTime() {
 		return gameStartTime;
 	}
-	
+
 	/**
 	 * Accessor to retrieve a game's end time
 	 * 
 	 * @return the time during which a checkmate, resignation, or draw occurred,
-	 * or null - if the game is still active
+	 *         or null - if the game is still active
 	 */
 	public LocalDateTime getEndTime() {
 		return !active ? gameEndTime : null;
 	}
-	
+
 	/**
-	 * Accessor to retrieve the move list for a Game.
-	 * Precondition: Game must no longer be active to retrieve the move list.
+	 * Accessor to retrieve the move list for a Game. Precondition: Game must no
+	 * longer be active to retrieve the move list.
 	 * 
 	 * @return a move list for a retired game, otherwise null
 	 */
@@ -184,28 +184,26 @@ public final class Game {
 		if (active) {
 			return null;
 		}
-		
+
 		return board.getMoveList();
 	}
-	
+
 	public File generateMoveListFile(String filename) throws IOException {
 		File result = null;
 		/*
-		if (!active) {
-			result = new File(filename);
-			
-			BufferedWriter bw = new BufferedWriter(new FileWriter(result));
-			
-			
-			List<Move> moveList = board.getMoveList();
-			
-			for (Move m : moveList) {
-				bw.append(m.getStartPosition() + " " + m.getEndPosition());
-			}
-			
-		}
-		*/
-		
+		 * if (!active) { result = new File(filename);
+		 * 
+		 * BufferedWriter bw = new BufferedWriter(new FileWriter(result));
+		 * 
+		 * 
+		 * List<Move> moveList = board.getMoveList();
+		 * 
+		 * for (Move m : moveList) { bw.append(m.getStartPosition() + " " +
+		 * m.getEndPosition()); }
+		 * 
+		 * }
+		 */
+
 		return result;
 	}
 
@@ -429,10 +427,10 @@ public final class Game {
 
 		return false;
 	}
-	
+
 	/**
-	 * Called by ChessActivity::movePiece, determine if a promotion
-	 * can take place given oldFile, oldRank, newFile, and newRank.
+	 * Called by ChessActivity::movePiece, determine if a promotion can take
+	 * place given oldFile, oldRank, newFile, and newRank.
 	 * 
 	 * @param oldFile the file of a given piece to move
 	 * @param oldRank the rank of a given piece to move
@@ -441,14 +439,14 @@ public final class Game {
 	 * 
 	 * @return true if promotable, false otherwise
 	 */
-	public boolean canPromote(int oldFile, int oldRank, int newFile, int newRank) {
+	public boolean canPromote(int oldFile, int oldRank, int newFile,
+			int newRank) {
 		boolean canPromote = false;
-		
-		PieceSet pieceSet = whitesMove ? 
-				white.pieceSetRef : black.pieceSetRef;
-		
-		Piece piece = 
-				pieceSet.getPieceByPosition(new Position(oldFile, oldRank));
+
+		PieceSet pieceSet = whitesMove ? white.pieceSetRef : black.pieceSetRef;
+
+		Piece piece = pieceSet
+				.getPieceByPosition(new Position(oldFile, oldRank));
 
 		if (piece != null) {
 			if (piece.isPawn()) {
@@ -463,7 +461,7 @@ public final class Game {
 				}
 			}
 		}
-		
+
 		return canPromote;
 	}
 
@@ -487,30 +485,28 @@ public final class Game {
 	 * @param promoteType the desired PieceType for promotion
 	 */
 	public void overridePawnPromotion(Position newPos, PieceType promoteType) {
-	
+
 		Move lastMove = getLastMove();
 		Piece piece = lastMove.getLastPiece();
-		
-		PieceSet pieceSet = 
-				piece.isWhite() ? white.pieceSetRef : black.pieceSetRef;
-		
+
+		PieceSet pieceSet = piece.isWhite() ? white.pieceSetRef
+				: black.pieceSetRef;
 
 		board.promotePawn(piece, pieceSet, newPos, promoteType);
-		
+
 		/*
-		Move lastMove = getLastMove();
-		
-		PieceType.Color color = lastMove.getLastPiece().isWhite() 
-				? PieceType.Color.WHITE : PieceType.Color.BLACK;
-		
-		PieceSet pieceSet = 
-				color.equals(PieceType.Color.WHITE) ? 
-						white.pieceSetRef : black.pieceSetRef;
-		
-		Piece piece = pieceSet.getPieceByPosition(newPos);
-		
-		board.promotePawn(piece, pieceSet, newPos, promoteType);
-		*/
+		 * Move lastMove = getLastMove();
+		 * 
+		 * PieceType.Color color = lastMove.getLastPiece().isWhite() ?
+		 * PieceType.Color.WHITE : PieceType.Color.BLACK;
+		 * 
+		 * PieceSet pieceSet = color.equals(PieceType.Color.WHITE) ?
+		 * white.pieceSetRef : black.pieceSetRef;
+		 * 
+		 * Piece piece = pieceSet.getPieceByPosition(newPos);
+		 * 
+		 * board.promotePawn(piece, pieceSet, newPos, promoteType);
+		 */
 	}
 
 	/**
@@ -529,7 +525,8 @@ public final class Game {
 			String color = "";
 			color = move.getLastPiece().isWhite() ? "WHITE" : "BLACK";
 			output = "The " + color + " piece player has made a move...\n\n";
-			output += "LAST MOVE PERFORMED" + " -----------------------------------------\n";
+			output += "LAST MOVE PERFORMED"
+					+ " -----------------------------------------\n";
 			output += "Time\t\tMove #\tPiece\tStart\tEnd\tPromoted From\n";
 			output += "-------------------------------------------------------------\n";
 			output += move + "\n";
@@ -588,7 +585,7 @@ public final class Game {
 	/**
 	 * Begins game loop
 	 */
-	public void start() {		
+	public void start() {
 		scan = new Scanner(System.in);
 		input = "";
 
@@ -607,7 +604,7 @@ public final class Game {
 
 				readInput(input);
 				System.out.println(output);
-				
+
 				if (didDraw || didResign || !active) {
 					break;
 				}
@@ -646,7 +643,7 @@ public final class Game {
 	 * @param inputFilePath String representing the input file to be read
 	 * @throws IOException On nonexistent inputFilePath
 	 */
-	public void startFromFile(String inputFilePath) throws IOException {		
+	public void startFromFile(String inputFilePath) throws IOException {
 		inputFile = new File(inputFilePath);
 
 		if (inputFile.exists() == false) {
@@ -658,7 +655,7 @@ public final class Game {
 		fileReader = new FileReader(inputFile);
 		bufferedReader = new BufferedReader(fileReader);
 		input = "";
-		
+
 		if (printBoard) {
 			System.out.println(board);
 		}
@@ -666,7 +663,7 @@ public final class Game {
 		while (active) {
 			do {
 				validMoveInput = false;
-				
+
 				input = ((BufferedReader) bufferedReader).readLine();
 				System.out.println();
 
@@ -713,22 +710,23 @@ public final class Game {
 		bufferedReader.close();
 		fileReader.close();
 	}
-	
+
 	/**
-	 * Starts a game from a String inputFilePath to an existing file.
-	 * One move is displayed at at time using the ENTER/RETURN key upon
-	 * prompt.
+	 * Starts a game from a String inputFilePath to an existing file. One move
+	 * is displayed at at time using the ENTER/RETURN key upon prompt.
 	 * Precondition: File to inputFilePath must exist.
 	 * 
 	 * @param inputFilePath String representing the input file to be read
 	 * @throws IOException On nonexistent inputFilePath
 	 */
-	public void startFromFilePlayByPlay(String inputFilePath) throws IOException {
+	public void startFromFilePlayByPlay(String inputFilePath)
+			throws IOException {
 		if (board.getLastMove() != null) {
-			System.err.println("Cannot call start() on a game that is already in progress!");
+			System.err.println(
+					"Cannot call start() on a game that is already in progress!");
 			return;
 		}
-		
+
 		inputFile = new File(inputFilePath);
 
 		if (inputFile.exists() == false) {
@@ -736,7 +734,7 @@ public final class Game {
 			System.err.println(output);
 			System.exit(0);
 		}
-		
+
 		System.out.println("*** PLAY BY PLAY MODE ***\n");
 
 		scan = new Scanner(System.in);
@@ -751,17 +749,19 @@ public final class Game {
 		while (active) {
 			do {
 				validMoveInput = false;
-				
+
 				output = whitesMove ? "White's " : "Black's ";
 
-				System.out.print(output + "move (press ENTER to see the next move):");
+				System.out.print(
+						output + "move (press ENTER to see the next move):");
 				input = scan.nextLine();
-				
+
 				while (input.equals("") == false) {
-					System.out.println("Hit ENTER to see the next move or X to quit.");
-					
+					System.out.println(
+							"Hit ENTER to see the next move or X to quit.");
+
 					input = scan.nextLine();
-					
+
 					if (input.equalsIgnoreCase("X")) {
 						System.exit(0);
 					}
@@ -832,7 +832,7 @@ public final class Game {
 			undoMove();
 			return;
 		}
-		
+
 		if (!input.equals("save")) {
 			if (!active) {
 				System.err.println("Game no longer active: " + gameWinner
@@ -870,7 +870,7 @@ public final class Game {
 			validMoveInput = false;
 			output = "Invalid input, try again\n";
 		}
-			
+
 		if (validMoveInput || validMoveInputWithPromotion
 				|| validMoveInputWithDraw) {
 			int file = -1;
@@ -878,7 +878,7 @@ public final class Game {
 			int newFile = -1;
 			int newRank = -1;
 			int promo = -1;
-			
+
 			fileRankArray = getFileRankArray(input);
 
 			file = fileRankArray[0];
@@ -905,77 +905,77 @@ public final class Game {
 
 			output = validMoveInput ? "" : "Illegal move, try again\n";
 		}
-		
+
 		if (didDraw || didResign || board.isCheckmate()) {
 			active = false;
 			gameEndTime = LocalDateTime.now();
-			
+
 			if (didDraw) {
 				output = "draw";
 				board.setOutputWinner("draw");
 				gameWinner = null;
 			}
-			
+
 			if (didResign) {
 				output = whitesMove ? "Black wins" : "White wins";
 				board.setOutputWinner(whitesMove ? "Black wins" : "White wins");
 				gameWinner = whitesMove ? Color.BLACK : Color.WHITE;
 			}
-			
+
 			if (board.isCheckmate()) {
 				output = board.getOutputWinner();
 				gameWinner = board.isWhiteWinner() ? Color.WHITE : Color.BLACK;
 			}
 		}
-		
+
 		if (validMoveInput) {
 			whitesMove = whitesMove ? false : true;
 		}
-		
+
 		validMoveInputWithDraw = false;
 		validMoveInputWithPromotion = false;
 
 		drawGranted = false;
 		willResign = false;
 	}
-	
+
 	/**
-	 * Undoes the last move in the move list --
-	 * if the last move is paired with a kill,
-	 * that kill is undone as well.
+	 * Undoes the last move in the move list -- if the last move is paired with
+	 * a kill, that kill is undone as well.
 	 * 
-	 * The undo caller forfeits their turn to the player who
-	 * had their previous move and/or kill undone.
+	 * The undo caller forfeits their turn to the player who had their previous
+	 * move and/or kill undone.
 	 */
 	private void undoMove() {
 		if (getLastMove() == null) {
 			System.err.println("\nNo moves to undo!");
 			return;
 		}
-		
+
 		System.out.println("\n** UNDO **\n");
-		
-		// Undo the previous move made by the opponent 
+
+		// Undo the previous move made by the opponent
 		// (opposite color of the caller)
-		board.undoMovePiece(getLastMove());
-		
+		board.undoMovePiece();
+
 		System.out.println(boardToString());
-		
+
 		printBlackSet();
 		printWhiteSet();
-		
+
 		printMoveLog();
-		
+
 		// Change the turn to the opposite caller.
 		whitesMove = whitesMove ? false : true;
-		
+
 	}
-	
+
 	/**
 	 * Saves the current state of the game, regardless if active or not
 	 */
 	private void saveGame() {
-		System.out.println("\n[State of game saved at " + LocalTime.now() + "]");
+		System.out
+				.println("\n[State of game saved at " + LocalTime.now() + "]");
 	}
 
 	/**
@@ -991,7 +991,7 @@ public final class Game {
 		if (input.equals("draw") || input.equals("resign")) {
 			return null;
 		}
-		
+
 		String fileRankStr = "";
 		String newFileNewRankStr = "";
 		String promoStr = null;
