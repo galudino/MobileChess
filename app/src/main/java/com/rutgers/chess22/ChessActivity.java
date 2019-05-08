@@ -179,8 +179,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         displayTurn = (TextView) findViewById(R.id.displayTurn);
         displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
-
-        disableUndo = true;
     }
 
     public boolean isFilePresent(String fileName) {
@@ -190,7 +188,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     }
 
     public static final String TMS_FORMAT = "yyyyMMddHHmmss";
-    private static final String GAME_FILE_EXT = ".chess22";
+    static final String GAME_FILE_EXT = ".chess22";
 
     public static String serializeAddress(File parentDir, String fileName, Object obj) {
         String filePath = makeFileName(parentDir, fileName);
