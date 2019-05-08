@@ -480,8 +480,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void doUndo() {
-        buttonUndo.setEnabled(false);
-
         if (game.getLastMove() != null) {
             game.readInput("undo");
 
