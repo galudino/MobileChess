@@ -104,8 +104,8 @@ public final class Game {
 	private String gameDateString;
 	
 	private DateTimeFormatter dateTimeFormatter;
-	
-	private static final String OUTPUT_DIR_CLI = "dat/";
+
+	private static final String OUTPUT_DIR_CLI = "dat";
 	private static final String OUTPUT_EXT = "chess22";
 
 	/**
@@ -1216,8 +1216,10 @@ public final class Game {
 				String.format("%s_%s.%s", title, gameStartTime, OUTPUT_EXT);
 		
 		String path = filepath + filename;
-		
-		File file = new File(filepath);
+
+		System.out.println(filename);
+
+		File file = new File(path);
 		if (!file.exists()) {
 			PrintWriter pw = new PrintWriter(path, "UTF-8");
 			pw.print("");

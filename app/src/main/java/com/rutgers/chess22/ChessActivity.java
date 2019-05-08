@@ -22,6 +22,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.DragEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -34,11 +35,16 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import model.PieceType;
+import model.chess_set.Board;
 import model.chess_set.Piece;
 import model.game.Game;
 import model.game.Move;
@@ -125,6 +131,9 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        System.out.println(isFilePresent("fileszzz_2019-05-08T16:52:18.443.chess22"));
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chess);
         initializeChessboard(this);
@@ -174,6 +183,83 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
+    public boolean isFilePresent(String fileName) {
+        String path = getFilesDir() .getAbsolutePath() + "/" + fileName;
+        File file = new File(path);
+        return file.exists();
+    }
+
+    public static final String TMS_FORMAT = "yyyyMMddHHmmss";
+    private static final String GAME_FILE_EXT = ".chess22";
+
+    public static String serializeAddress(File parentDir, String fileName, Object obj) {
+        String filePath = makeFileName(parentDir, fileName);
+        String out = "0";
+        //
+        FileOutputStream fout = null;
+        ObjectOutputStream oos = null;
+        //
+        try {
+            fout = new FileOutputStream(filePath);
+            out = "1";
+            oos = new ObjectOutputStream(fout);
+            out = "2";
+            oos.writeObject(obj);
+            out = "3";
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        finally {
+            if (oos != null) {
+                try {
+                    oos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fout != null) {
+                try {
+                    fout.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        //
+        return out;
+    }
+
+
+    public static String makeFileName(File parentDir, String input) {
+        input = input.trim();
+        input = input.replaceAll("[^a-zA-Z0-9-]", "_");
+        if (input.length()>48) {
+            input = input.substring(0,48);
+        }
+        //
+        SimpleDateFormat dateFormat = new SimpleDateFormat(TMS_FORMAT);  //"dd-MM-yyyy HH:mm:ss"
+        String tms  = dateFormat.format(new Date());
+        //
+        return parentDir.getPath() + File.separator + tms + input + GAME_FILE_EXT;
+    }
+
+
+    public static String getTitleFromFileName(String input) {
+        String szTemp = input.substring(0, input.length()-GAME_FILE_EXT.length());
+        return szTemp.substring(TMS_FORMAT.length());
+    }
+
+    public static String getTMSFromFileName(String input) {
+        //"yyyyMMddHHmmss"
+        return  input.substring(0,  4) + "-" +
+                input.substring(4,  6) + "-" +
+                input.substring(6,  8) + " " +
+                input.substring(8,  10) + ":" +
+                input.substring(10, 12) + ":" +
+                input.substring(12, 14);
+    }
+
     private String parseFileToString(String filename) {
         assetManager = getAssets();
 
@@ -184,6 +270,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             is = assetManager.open(filename);
             int size = is.available();
 
+
             byte[] buffer = new byte[size];
 
             is.read(buffer);
@@ -193,9 +280,9 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return text;
     }
+
 
 
     @Override
@@ -280,7 +367,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                             saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
-                                                    saveTitle = gameTitle.getText().toString();
+                                                    if(!gameTitle.getText().toString().isEmpty()) {
+                                                        saveTitle = gameTitle.getText().toString();
+                                                        dialog.dismiss();
+                                                    } else {
+
+                                                    }
                                                 }
                                             });
                                             saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -341,7 +433,14 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                             saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
-                                                    saveTitle = gameTitle.getText().toString();
+                                                    if(!gameTitle.getText().toString().isEmpty()) {
+                                                        saveTitle = gameTitle.getText().toString();
+                                                        game.setGameTitleString(saveTitle);
+                                                        serializeAddress(getFilesDir(), saveTitle, game.generateSaveGameString());
+                                                        dialog.dismiss();
+                                                    } else {
+
+                                                    }
                                                 }
                                             });
                                             saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -652,7 +751,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                                     saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
-                                                            saveTitle = gameTitle.getText().toString();
+                                                            if(!gameTitle.getText().toString().isEmpty()) {
+                                                                saveTitle = gameTitle.getText().toString();
+                                                                dialog.dismiss();
+                                                            } else {
+
+                                                            }
                                                         }
                                                     });
                                                     saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -720,7 +824,13 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                     saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            saveTitle = gameTitle.getText().toString();
+                                            if(!gameTitle.getText().toString().isEmpty()) {
+                                                saveTitle = gameTitle.getText().toString();
+                                                System.out.println(getFilesDir());
+                                                dialog.dismiss();
+                                            } else {
+
+                                            }
                                         }
                                     });
                                     saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -1244,4 +1354,5 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public int getNewRank() {
         return newRank;
     }
+
 }
