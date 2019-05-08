@@ -19,9 +19,11 @@ import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -62,6 +64,9 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public static final String PIECE_WK = "wK";
     public static final String PIECE_WP = "wP";
     public static final String PIECE_NO = "--";
+
+    private EditText gameTitle;
+    private String saveTitle;
 
     private int oldFile, oldRank, newFile, newRank;
 
@@ -140,6 +145,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         oldTag = "";
         newTag = "";
+
+        gameTitle = new EditText(this);
 
         drawRequested = false;
         drawAccepted = false;
@@ -227,6 +234,25 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
+                                            AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                            saveGame.setTitle("Enter title of game:");
+                                            gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                            saveGame.setView(gameTitle);
+
+                                            saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    saveTitle = gameTitle.getText().toString();
+                                                }
+                                            });
+                                            saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+
+                                                }
+                                            });
+
+                                            saveGame.show();
                                         }
                                     });
                             builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -269,6 +295,25 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
+                                            AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                            saveGame.setTitle("Enter title of game:");
+                                            gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                            saveGame.setView(gameTitle);
+
+                                            saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    saveTitle = gameTitle.getText().toString();
+                                                }
+                                            });
+                                            saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+
+                                                }
+                                            });
+
+                                            saveGame.show();
                                         }
                                     });
                             builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -560,6 +605,25 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                             new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
+                                                    AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                                    saveGame.setTitle("Enter title of game:");
+                                                    gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                                    saveGame.setView(gameTitle);
+
+                                                    saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            saveTitle = gameTitle.getText().toString();
+                                                        }
+                                                    });
+                                                    saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+
+                                                        }
+                                                    });
+
+                                                    saveGame.show();
                                                 }
                                             });
                                     builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -601,6 +665,47 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                  */
                 if (game.isActive() == false) {
                     debug.log("ChessActivity::movePiece", game.getGameWinner() + " has won!");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                    builder.setCancelable(true);
+                    builder.setTitle("GAME OVER: Checkmate.");
+                    builder.setMessage("The winner is: " + game.getGameWinner() + ".\nWould you like to save this game?");
+                    builder.setPositiveButton("Confirm",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                    saveGame.setTitle("Enter title of game:");
+                                    gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                    saveGame.setView(gameTitle);
+
+                                    saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            saveTitle = gameTitle.getText().toString();
+                                        }
+                                    });
+                                    saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+
+                                        }
+                                    });
+
+                                    saveGame.show();
+                                }
+                            });
+                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.out.println("GOING TO MAIN MENU...");
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+
+                    AlertDialog dialogx = builder.create();
+                    dialogx.show();
+                    return;
                 }
 
                 displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
