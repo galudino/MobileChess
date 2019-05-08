@@ -73,6 +73,8 @@ public class ExampleUnitTest {
         //game.togglePrintBoard();
 
 
+
+
         //game.startFromFile("dat/testgame.txt");
         game.start();
     }

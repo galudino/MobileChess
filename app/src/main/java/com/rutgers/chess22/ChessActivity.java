@@ -1,19 +1,21 @@
 /**
  * ChessActivity.java
- *
+ * <p>
  * Copyright (c) 2019 Patrick Nogaj, Gemuele Aludino
  * All rights reserved.
- *
+ * <p>
  * Rutgers University: School of Arts and Sciences
  * 01:198:213 Software Methodology, Spring 2019
  * Professor Seshadri Venugopal
  */
 package com.rutgers.chess22;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.os.Looper;
 import android.support.v7.app.AlertDialog;
@@ -27,6 +29,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import model.PieceType;
 import model.chess_set.Piece;
@@ -111,6 +121,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
     private PieceType promotionType;
 
+    private AssetManager assetManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -158,7 +170,33 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         displayTurn = (TextView) findViewById(R.id.displayTurn);
         displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
+
+
     }
+
+    private String parseFileToString(String filename) {
+        assetManager = getAssets();
+
+        String text = "unread";
+
+        InputStream is;
+        try {
+            is = assetManager.open(filename);
+            int size = is.available();
+
+            byte[] buffer = new byte[size];
+
+            is.read(buffer);
+            is.close();
+
+            text = new String(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return text;
+    }
+
 
     @Override
     public void onClick(View view) {
@@ -192,8 +230,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 selectPiece(tempTag);
             }
         } else if (view instanceof Button) {
-            Button button = (Button)(view);
-            String buttonTag = (String)(button.getTag());
+            Button button = (Button) (view);
+            String buttonTag = (String) (button.getTag());
 
             switch (buttonTag) {
                 case buttonAITag:
@@ -383,6 +421,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                     board[oldFile][oldRank].setImageResource(R.drawable.blackpawn);
                 }
             }
+
 
             /**
              * If a piece was killed during a move, bring it back (graphically)
@@ -720,7 +759,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      */
     private PieceType doPromotion() {
         PieceType pieceType = promotionType;
-        CharSequence[] promotionTypes = new CharSequence[] {"Queen", "Rook", "Bishop", "Knight"};
+        CharSequence[] promotionTypes = new CharSequence[]{"Queen", "Rook", "Bishop", "Knight"};
         promotionPicker.setTitle("You are able to promote. Please select type of piece to promote to:");
         promotionPicker.setSingleChoiceItems(promotionTypes, 0, this);
         promotionPicker.create();
@@ -738,13 +777,13 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(DialogInterface dialog, int which) {
         promotionType = null;
 
-        if(which == 0) {
+        if (which == 0) {
             promotionType = PieceType.QUEEN;
-        } else if(which == 1) {
+        } else if (which == 1) {
             promotionType = PieceType.ROOK_R;
-        } else if(which == 2) {
+        } else if (which == 2) {
             promotionType = PieceType.BISHOP_R;
-        } else if(which == 3) {
+        } else if (which == 3) {
             promotionType = PieceType.KNIGHT_R;
         }
         dialog.dismiss();
