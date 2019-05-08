@@ -123,7 +123,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
     private boolean resignRequested;    // activated by buttonResign
 
-    private Game game;
+    Game game;
 
     private PieceType promotionType;
 
