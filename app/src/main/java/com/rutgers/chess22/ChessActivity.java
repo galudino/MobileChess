@@ -10,10 +10,12 @@
  */
 package com.rutgers.chess22;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,7 +27,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import model.PieceType;
+import model.chess_set.Piece;
 import model.game.Game;
+import model.game.Move;
 import model.game.Position;
 
 class debug {
@@ -41,7 +45,7 @@ class debug {
  * @author patricknogaj
  * @author gemuelealudino
  */
-public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
+public class ChessActivity extends AppCompatActivity implements View.OnClickListener, DialogInterface.OnClickListener {
 
     private static int MAX_LENGTH_WIDTH = 8;
 
@@ -59,6 +63,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public static final String PIECE_WP = "wP";
     public static final String PIECE_NO = "--";
 
+    private AlertDialog.Builder promotionPicker;
 
     private static final String linearLayoutChessboardTag = "linearLayoutChessboard";
     private static final String linearLayoutTopTag = "linearLayoutTop";
@@ -97,6 +102,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
     private Game game;
 
+    private PieceType promotionType;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,6 +128,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         buttonUndo = findViewById(R.id.btnRollback);
         buttonUndo.setTag(buttonUndoTag);
+        buttonUndo.setEnabled(false);
 
         buttonDraw = findViewById(R.id.btnDraw);
         buttonDraw.setTag(buttonDrawTag);
@@ -136,6 +144,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         resignRequested = false;
 
         game = new Game();
+
+        promotionPicker = new AlertDialog.Builder(this);
 
         displayTurn = (TextView) findViewById(R.id.displayTurn);
         displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
@@ -182,6 +192,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                     break;
                 case buttonUndoTag:
                     debug.log("ChessActivity::onClick", "Clicked buttonUndo");
+                    doUndo();
                     break;
                 case buttonDrawTag:
                     debug.log("ChessActivity::onClick", "Clicked buttonDraw");
@@ -280,6 +291,110 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private void doUndo() {
+        if (game.getLastMove() != null) {
+            game.readInput("undo");
+
+            /**
+             * Do graphical portion here.
+             */
+
+            Move lastMove = game.getLastMoveUndone();
+            PieceType promotedFrom = lastMove.getPromotedFrom();
+            Piece piece = lastMove.getLastPiece();
+            int oldFile = lastMove.getStartPosition().getFile();
+            int oldRank = lastMove.getStartPosition().getRank();
+            int newFile = lastMove.getEndPosition().getFile();
+            int newRank = lastMove.getEndPosition().getRank();
+
+            Move lastKill = game.getLastKillUndone();
+            Piece pieceKill = lastKill.getLastPiece();
+            int oldFileKill = lastKill.getStartPosition().getFile();
+            int oldRankKill = lastKill.getStartPosition().getRank();
+
+            // make a tag like <file><rank><color><piece>
+            // 00WP means a1 white pawn
+
+            oldTag = String.format("%d%d%s", newFile, newRank, piece);
+            newTag = String.format("%d%d%s", oldFile, oldRank, piece);
+
+
+            /**
+             * Start by reversing a move (graphically)
+             */
+            moveGraphicalPieces(newFile, newRank, oldFile, oldRank);
+
+
+            /**
+             * If a piece was a promoted pawn, demote it (graphically)
+             */
+            if (promotedFrom != null) {
+                board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+                if (piece.isWhite()) {
+                    board[oldFile][oldRank].setImageResource(R.drawable.whitepawn);
+                } else {
+                    board[oldFile][oldRank].setImageResource(R.drawable.blackpawn);
+                }
+            }
+
+            /**
+             * If a piece was killed during a move, bring it back (graphically)
+             */
+            if (lastKill.getLocalTime().equals(lastMove.getLocalTime())) {
+                int imageResourceID = -1;
+
+                String str = pieceKill.toString();
+
+                switch (str) {
+                    case PIECE_BR:
+                        imageResourceID = R.drawable.blackrook;
+                        break;
+                    case PIECE_BN:
+                        imageResourceID = R.drawable.blackknight;
+                        break;
+                    case PIECE_BB:
+                        imageResourceID = R.drawable.blackbishop;
+                        break;
+                    case PIECE_BQ:
+                        imageResourceID = R.drawable.blackqueen;
+                        break;
+                    case PIECE_BP:
+                        imageResourceID = R.drawable.blackpawn;
+                        break;
+                    case PIECE_WR:
+                        imageResourceID = R.drawable.whiterook;
+                        break;
+                    case PIECE_WN:
+                        imageResourceID = R.drawable.whiteknight;
+                        break;
+                    case PIECE_WB:
+                        imageResourceID = R.drawable.whitebishop;
+                        break;
+                    case PIECE_WQ:
+                        imageResourceID = R.drawable.whitequeen;
+                        break;
+                    case PIECE_WP:
+                        imageResourceID = R.drawable.whitepawn;
+                    default:
+                        /**
+                         * tagSuffix should not allow this switch
+                         * to hit the default case, but is here nonetheless.
+                         */
+                        //imageResourceID = R.drawable.whitequeen;
+                        break;
+                }
+
+                board[oldFileKill][oldRankKill].setImageResource(imageResourceID);
+            }
+
+            displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
+        } else {
+            /**
+             * TODO notification that there are no moves to undo
+             */
+        }
+    }
+
     /**
      * Activates/deactivates highlighting for a selected piece/cell
      *
@@ -344,6 +459,40 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private int oldFile, oldRank, newFile, newRank;
+
+    public void setOldFile(int oldFile) {
+        this.oldFile = oldFile;
+    }
+
+    public void setOldRank(int oldRank) {
+        this.oldRank = oldRank;
+    }
+
+    public void setNewFile(int newFile) {
+        this.newFile = newFile;
+    }
+
+    public void setNewRank(int newRank) {
+        this.newRank = newRank;
+    }
+
+    public int getOldFile() {
+        return oldFile;
+    }
+
+    public int getOldRank() {
+        return oldRank;
+    }
+
+    public int getNewFile() {
+        return newFile;
+    }
+
+    public int getNewRank() {
+        return newRank;
+    }
+
     /**
      *
      * @param oldFile
@@ -356,7 +505,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             debug.log("ChessActivity::movePiece", "Game is no longer active.");
         }
 
-        PieceType promotion = null;
+        setOldFile(oldFile);
+        setOldRank(oldRank);
+        setNewFile(newFile);
+        setNewRank(newRank);
+
+        PieceType promotion = promotionType;
         /**
          * Examine oldFile, oldRank, newFile, newRank to see if a promotion
          * can take place for a player. If so,
@@ -369,76 +523,75 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
          * A PieceType is returned to promotion when a user selects
          * their promotion piece type in doPromotion().
          */
-        if (promotionQualifies) {
+        if (promotionQualifies && promotionType == null) {
             promotion = doPromotion();
-        }
+        } else {
+            promotionType = null;
+            oldTag = (String) board[oldFile][oldRank].getTag();
+            newTag = (String) board[newFile][newRank].getTag();
 
-        oldTag = (String) board[oldFile][oldRank].getTag();
-        newTag = (String) board[newFile][newRank].getTag();
+            String inputRequest =
+                    translateTags(oldFile, oldRank,
+                            newFile, newRank,
+                            promotion,
+                            drawRequested, drawAccepted, resignRequested);
 
-        String inputRequest =
-                translateTags(oldFile, oldRank,
-                        newFile, newRank,
-                        promotion,
-                        drawRequested, drawAccepted, resignRequested);
+            game.readInput(inputRequest.trim());
 
-        System.out.println(inputRequest + " was the input request");
+            if (game.isValidMoveInput()) {
+                /**
+                 * DEBUG MESSAGES
+                 */
+                System.out.println(game.boardToString());
 
-        game.readInput(inputRequest.trim());
+                game.printPostMoveLog();
+                game.printMoveLog();
 
-        if (game.isValidMoveInput()) {
-            /**
-             * DEBUG MESSAGES
-             */
-            System.out.println(game.boardToString());
+                if (game.isWhitesMove()) {
+                    game.printBlackSet();
+                } else {
+                    game.printWhiteSet();
+                }
+                /**
+                 * END DEBUG MESSAGES
+                 */
 
-            game.printPostMoveLog();
-            game.printMoveLog();
+                moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
 
-            if (game.isWhitesMove()) {
-                game.printBlackSet();
-            } else {
-                game.printWhiteSet();
+                buttonUndo.setEnabled(true);
+
+                if (game.didPromoteWhite() || game.didPromoteBlack()) {
+                    // this will change the GUI pawn on the board to the desired
+                    // promotion piece.
+                    promotion(newFile, newRank);
+                }
+
+                if (game.isWillDraw()) {
+                    checkBoxDraw.setChecked(false);
+                    checkBoxDraw.setText("Draw.");
+
+                    // TODO graphical popup notifying the other player that their opponent
+                    // has request
+                    // ed a draw
+
+                    debug.log("ChessActivity::movePiece", "Draw requested");
+                } else {
+                    checkBoxDraw.setText("Draw?");
+                }
+
+                if (game.isDidDraw()) {
+                    debug.log("ChessActivity::movePiece", "Game has ended in a draw.");
+                }
+
+                /**
+                 * If checkmate has occurred...
+                 */
+                if (game.isActive() == false) {
+                    debug.log("ChessActivity::movePiece", game.getGameWinner() + " has won!");
+                }
+
+                displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
             }
-            /**
-             * END DEBUG MESSAGES
-             */
-
-            moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
-
-            if (game.didPromoteWhite() || game.didPromoteBlack()) {
-                // this will change the GUI pawn on the board to the desired
-                // promotion piece.
-                promotion(newFile, newRank);
-            }
-
-            if (game.isWillDraw()) {
-                checkBoxDraw.setChecked(false);
-                checkBoxDraw.setText("Draw.");
-
-                // TODO graphical popup notifying the other player that their opponent
-                // has request
-                // ed a draw
-
-                debug.log("ChessActivity::movePiece", "Draw requested");
-            } else {
-                checkBoxDraw.setText("Draw?");
-            }
-
-            if (game.isDidDraw()) {
-                debug.log("ChessActivity::movePiece", "Game has ended in a draw.");
-            }
-
-            /**
-             * If checkmate has occurred...
-             */
-            if (game.isActive() == false) {
-                debug.log("ChessActivity::movePiece", game.getGameWinner() + " has won!");
-            }
-
-
-
-            displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
         }
     }
 
@@ -448,17 +601,37 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @return
      */
     private PieceType doPromotion() {
-        PieceType pieceType = PieceType.KNIGHT_R;
+        PieceType pieceType = promotionType;
+        CharSequence[] promotionTypes = new CharSequence[] {"Queen", "Rook", "Bishop", "Knight"};
+        promotionPicker.setTitle("You are able to promote. Please select type of piece to promote to:");
+        promotionPicker.setSingleChoiceItems(promotionTypes, 0, this);
+        promotionPicker.create();
+        promotionPicker.show();
 
+        System.out.println(" " + promotionType);
         /**
          * USER makes decision here.
          */
 
-
-        return pieceType;
+        return promotionType;
     }
 
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        promotionType = null;
 
+        if(which == 0) {
+            promotionType = PieceType.QUEEN;
+        } else if(which == 1) {
+            promotionType = PieceType.ROOK_R;
+        } else if(which == 2) {
+            promotionType = PieceType.BISHOP_R;
+        } else if(which == 3) {
+            promotionType = PieceType.KNIGHT_R;
+        }
+        dialog.dismiss();
+        movePiece(getOldFile(), getOldRank(), getNewFile(), getNewRank());
+    }
 
     /**
      * Precondition: game.didPromoteWhite() or game.didPromoteBlack() must be true.
@@ -468,7 +641,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @param newRank rank where a promotable pawn resides
      */
     private void promotion(int newFile, int newRank) {
-
         /**
          *  The string representation of a Piece implies its PieceType,
          *  and its PieceType.color, and is identical in form
