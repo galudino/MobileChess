@@ -369,7 +369,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                                 public void onClick(DialogInterface dialog, int which) {
                                                     if(!gameTitle.getText().toString().isEmpty()) {
                                                         saveTitle = gameTitle.getText().toString();
+                                                        game.setGameTitleString(saveTitle);
+                                                        serializeAddress(getFilesDir(), saveTitle, game.generateSaveGameString());
                                                         dialog.dismiss();
+
+                                                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                        startActivity(intent);
                                                     } else {
 
                                                     }
@@ -438,6 +443,9 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                                         game.setGameTitleString(saveTitle);
                                                         serializeAddress(getFilesDir(), saveTitle, game.generateSaveGameString());
                                                         dialog.dismiss();
+
+                                                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                        startActivity(intent);
                                                     } else {
 
                                                     }
@@ -753,7 +761,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             if(!gameTitle.getText().toString().isEmpty()) {
                                                                 saveTitle = gameTitle.getText().toString();
+                                                                game.setGameTitleString(saveTitle);
+                                                                serializeAddress(getFilesDir(), saveTitle, game.generateSaveGameString());
                                                                 dialog.dismiss();
+
+                                                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                                startActivity(intent);
                                                             } else {
 
                                                             }
@@ -826,8 +839,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                         public void onClick(DialogInterface dialog, int which) {
                                             if(!gameTitle.getText().toString().isEmpty()) {
                                                 saveTitle = gameTitle.getText().toString();
-                                                System.out.println(getFilesDir());
+                                                game.setGameTitleString(saveTitle);
+                                                serializeAddress(getFilesDir(), saveTitle, game.generateSaveGameString());
                                                 dialog.dismiss();
+
+                                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                startActivity(intent);
                                             } else {
 
                                             }
