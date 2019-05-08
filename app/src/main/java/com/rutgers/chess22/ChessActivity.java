@@ -10,13 +10,16 @@
  */
 package com.rutgers.chess22;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -68,7 +71,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     private int oldFile, oldRank, newFile, newRank;
 
     private AlertDialog.Builder promotionPicker;
-
 
     private static final String linearLayoutChessboardTag = "linearLayoutChessboard";
     private static final String linearLayoutTopTag = "linearLayoutTop";
@@ -133,6 +135,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         buttonUndo = findViewById(R.id.btnRollback);
         buttonUndo.setTag(buttonUndoTag);
+        buttonUndo.setEnabled(false);
 
         buttonDraw = findViewById(R.id.btnDraw);
         buttonDraw.setTag(buttonDrawTag);
@@ -142,6 +145,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
         oldTag = "";
         newTag = "";
+
+        gameTitle = new EditText(this);
 
         drawRequested = false;
         drawAccepted = false;
@@ -223,12 +228,31 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
                             builder.setCancelable(true);
-                            builder.setTitle("Game Over!");
+                            builder.setTitle("GAME OVER: Draw.");
                             builder.setMessage("The winner is: NOBODY.\nWould you like to save this game?");
                             builder.setPositiveButton("Confirm",
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
+                                            AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                            saveGame.setTitle("Enter title of game:");
+                                            gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                            saveGame.setView(gameTitle);
+
+                                            saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    saveTitle = gameTitle.getText().toString();
+                                                }
+                                            });
+                                            saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+
+                                                }
+                                            });
+
+                                            saveGame.show();
                                         }
                                     });
                             builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -265,12 +289,31 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                     "*** END GAME HERE BY RESIGNATION ***");
                             AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
                             builder.setCancelable(true);
-                            builder.setTitle("Game Over!");
+                            builder.setTitle("GAME OVER: Resign.");
                             builder.setMessage("The winner is: " + game.getGameWinner() + ".\nWould you like to save this game?");
                             builder.setPositiveButton("Yes",
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
+                                            AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                            saveGame.setTitle("Enter title of game:");
+                                            gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                            saveGame.setView(gameTitle);
+
+                                            saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    saveTitle = gameTitle.getText().toString();
+                                                }
+                                            });
+                                            saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+
+                                                }
+                                            });
+
+                                            saveGame.show();
                                         }
                                     });
                             builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -322,10 +365,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             oldTag = String.format("%d%d%s", newFile, newRank, piece);
             newTag = String.format("%d%d%s", oldFile, oldRank, piece);
 
+
             /**
              * Start by reversing a move (graphically)
              */
             moveGraphicalPieces(newFile, newRank, oldFile, oldRank);
+
 
             /**
              * If a piece was a promoted pawn, demote it (graphically)
@@ -473,7 +518,12 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             debug.log("ChessActivity::movePiece", "Game is no longer active.");
         }
 
-        PieceType promotion = null;
+        setOldFile(oldFile);
+        setOldRank(oldRank);
+        setNewFile(newFile);
+        setNewRank(newRank);
+
+        PieceType promotion = promotionType;
         /**
          * Examine oldFile, oldRank, newFile, newRank to see if a promotion
          * can take place for a player. If so,
@@ -486,76 +536,180 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
          * A PieceType is returned to promotion when a user selects
          * their promotion piece type in doPromotion().
          */
-        if (promotionQualifies) {
+        if (promotionQualifies && promotionType == null) {
             promotion = doPromotion();
-        }
+        } else {
+            promotionType = null;
+            oldTag = (String) board[oldFile][oldRank].getTag();
+            newTag = (String) board[newFile][newRank].getTag();
 
-        oldTag = (String) board[oldFile][oldRank].getTag();
-        newTag = (String) board[newFile][newRank].getTag();
+            String inputRequest =
+                    translateTags(oldFile, oldRank,
+                            newFile, newRank,
+                            promotion,
+                            drawRequested, drawAccepted, resignRequested);
 
-        String inputRequest =
-                translateTags(oldFile, oldRank,
-                        newFile, newRank,
-                        promotion,
-                        drawRequested, drawAccepted, resignRequested);
+            game.readInput(inputRequest.trim());
 
-        System.out.println(inputRequest + " was the input request");
+            if (game.isValidMoveInput()) {
+                /**
+                 * DEBUG MESSAGES
+                 */
+                System.out.println(game.boardToString());
 
-        game.readInput(inputRequest.trim());
+                game.printPostMoveLog();
+                game.printMoveLog();
 
-        if (game.isValidMoveInput()) {
-            /**
-             * DEBUG MESSAGES
-             */
-            System.out.println(game.boardToString());
+                if (game.isWhitesMove()) {
+                    game.printBlackSet();
+                } else {
+                    game.printWhiteSet();
+                }
+                /**
+                 * END DEBUG MESSAGES
+                 */
 
-            game.printPostMoveLog();
-            game.printMoveLog();
+                moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
 
-            if (game.isWhitesMove()) {
-                game.printBlackSet();
-            } else {
-                game.printWhiteSet();
+                buttonUndo.setEnabled(true);
+
+                if (game.didPromoteWhite() || game.didPromoteBlack()) {
+                    // this will change the GUI pawn on the board to the desired
+                    // promotion piece.
+                    promotion(newFile, newRank);
+                }
+
+                if (game.isWillDraw()) {
+                    debug.log("ChessActivity::movePiece", "Draw requested");
+
+                    checkBoxDraw.setChecked(false);
+                    checkBoxDraw.setText("Draw.");
+
+                    // TODO graphical popup notifying the other player that their opponent
+                    // has request
+                    // ed a draw
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                    builder.setCancelable(true);
+                    builder.setTitle("Pending Draw...");
+                    builder.setMessage("The other player would like to draw.\nWould you like to agree?");
+                    builder.setPositiveButton("Confirm",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                                    builder.setCancelable(true);
+                                    builder.setTitle("GAME OVER: Draw.");
+                                    builder.setMessage("The winner is: NOBODY.\nWould you like to save this game?");
+                                    builder.setPositiveButton("Confirm",
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                                    saveGame.setTitle("Enter title of game:");
+                                                    gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                                    saveGame.setView(gameTitle);
+
+                                                    saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            saveTitle = gameTitle.getText().toString();
+                                                        }
+                                                    });
+                                                    saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+
+                                                        }
+                                                    });
+
+                                                    saveGame.show();
+                                                }
+                                            });
+                                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            System.out.println("GOING TO MAIN MENU...");
+                                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    });
+
+                                    AlertDialog dialogx = builder.create();
+                                    dialogx.show();
+                                    return;
+                                }
+                            });
+                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                    return;
+
+
+                } else {
+                    checkBoxDraw.setText("Draw?");
+                }
+
+                if (game.isDidDraw()) {
+                    debug.log("ChessActivity::movePiece", "Game has ended in a draw.");
+                }
+
+                /**
+                 * If checkmate has occurred...
+                 */
+                if (game.isActive() == false) {
+                    debug.log("ChessActivity::movePiece", game.getGameWinner() + " has won!");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                    builder.setCancelable(true);
+                    builder.setTitle("GAME OVER: Checkmate.");
+                    builder.setMessage("The winner is: " + game.getGameWinner() + ".\nWould you like to save this game?");
+                    builder.setPositiveButton("Confirm",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    AlertDialog.Builder saveGame = new AlertDialog.Builder(ChessActivity.this);
+                                    saveGame.setTitle("Enter title of game:");
+                                    gameTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                                    saveGame.setView(gameTitle);
+
+                                    saveGame.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            saveTitle = gameTitle.getText().toString();
+                                        }
+                                    });
+                                    saveGame.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+
+                                        }
+                                    });
+
+                                    saveGame.show();
+                                }
+                            });
+                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.out.println("GOING TO MAIN MENU...");
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+
+                    AlertDialog dialogx = builder.create();
+                    dialogx.show();
+                    return;
+                }
+
+                displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
             }
-            /**
-             * END DEBUG MESSAGES
-             */
-
-            moveGraphicalPieces(oldFile, oldRank, newFile, newRank);
-
-            if (game.didPromoteWhite() || game.didPromoteBlack()) {
-                // this will change the GUI pawn on the board to the desired
-                // promotion piece.
-                promotion(newFile, newRank);
-            }
-
-            if (game.isWillDraw()) {
-                checkBoxDraw.setChecked(false);
-                checkBoxDraw.setText("Draw.");
-
-                // TODO graphical popup notifying the other player that their opponent
-                // has request
-                // ed a draw
-
-                debug.log("ChessActivity::movePiece", "Draw requested");
-            } else {
-                checkBoxDraw.setText("Draw?");
-            }
-
-            if (game.isDidDraw()) {
-                debug.log("ChessActivity::movePiece", "Game has ended in a draw.");
-            }
-
-            /**
-             * If checkmate has occurred...
-             */
-            if (game.isActive() == false) {
-                debug.log("ChessActivity::movePiece", game.getGameWinner() + " has won!");
-            }
-
-
-
-            displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
         }
     }
 
@@ -597,9 +751,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         movePiece(getOldFile(), getOldRank(), getNewFile(), getNewRank());
     }
 
-
-
-
     /**
      * Precondition: game.didPromoteWhite() or game.didPromoteBlack() must be true.
      * (it is meant to be called within an if block, hence the access modifier private)
@@ -608,7 +759,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @param newRank rank where a promotable pawn resides
      */
     private void promotion(int newFile, int newRank) {
-
         /**
          *  The string representation of a Piece implies its PieceType,
          *  and its PieceType.color, and is identical in form

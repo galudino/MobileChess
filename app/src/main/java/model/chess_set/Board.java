@@ -474,7 +474,7 @@ public final class Board {
 			PieceSet pieceSet = pawn.isWhite() ? whiteSet : blackSet;
 			
 			// Restore the promoted pawn to its previous form
-			pieceSet.demotePawn(pawn);
+			//pieceSet.demotePawn(pawn);
 		}
 		
 		
