@@ -63,6 +63,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public static final String PIECE_WP = "wP";
     public static final String PIECE_NO = "--";
 
+    private int oldFile, oldRank, newFile, newRank;
+
     private AlertDialog.Builder promotionPicker;
 
     private static final String linearLayoutChessboardTag = "linearLayoutChessboard";
@@ -219,7 +221,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
                             builder.setCancelable(true);
-                            builder.setTitle("Game Over!");
+                            builder.setTitle("GAME OVER: Draw.");
                             builder.setMessage("The winner is: NOBODY.\nWould you like to save this game?");
                             builder.setPositiveButton("Confirm",
                                     new DialogInterface.OnClickListener() {
@@ -261,7 +263,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                                     "*** END GAME HERE BY RESIGNATION ***");
                             AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
                             builder.setCancelable(true);
-                            builder.setTitle("Game Over!");
+                            builder.setTitle("GAME OVER: Resign.");
                             builder.setMessage("The winner is: " + game.getGameWinner() + ".\nWould you like to save this game?");
                             builder.setPositiveButton("Yes",
                                     new DialogInterface.OnClickListener() {
@@ -459,40 +461,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private int oldFile, oldRank, newFile, newRank;
-
-    public void setOldFile(int oldFile) {
-        this.oldFile = oldFile;
-    }
-
-    public void setOldRank(int oldRank) {
-        this.oldRank = oldRank;
-    }
-
-    public void setNewFile(int newFile) {
-        this.newFile = newFile;
-    }
-
-    public void setNewRank(int newRank) {
-        this.newRank = newRank;
-    }
-
-    public int getOldFile() {
-        return oldFile;
-    }
-
-    public int getOldRank() {
-        return oldRank;
-    }
-
-    public int getNewFile() {
-        return newFile;
-    }
-
-    public int getNewRank() {
-        return newRank;
-    }
-
     /**
      *
      * @param oldFile
@@ -567,6 +535,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 }
 
                 if (game.isWillDraw()) {
+                    debug.log("ChessActivity::movePiece", "Draw requested");
+
                     checkBoxDraw.setChecked(false);
                     checkBoxDraw.setText("Draw.");
 
@@ -574,7 +544,50 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                     // has request
                     // ed a draw
 
-                    debug.log("ChessActivity::movePiece", "Draw requested");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                    builder.setCancelable(true);
+                    builder.setTitle("Pending Draw...");
+                    builder.setMessage("The other player would like to draw.\nWould you like to agree?");
+                    builder.setPositiveButton("Confirm",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(ChessActivity.this);
+                                    builder.setCancelable(true);
+                                    builder.setTitle("GAME OVER: Draw.");
+                                    builder.setMessage("The winner is: NOBODY.\nWould you like to save this game?");
+                                    builder.setPositiveButton("Confirm",
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                }
+                                            });
+                                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            System.out.println("GOING TO MAIN MENU...");
+                                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    });
+
+                                    AlertDialog dialogx = builder.create();
+                                    dialogx.show();
+                                    return;
+                                }
+                            });
+                    builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                    return;
+
+
                 } else {
                     checkBoxDraw.setText("Draw?");
                 }
@@ -1054,5 +1067,37 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      */
     public String getSelectedObject() {
         return selectedObject;
+    }
+
+    public void setOldFile(int oldFile) {
+        this.oldFile = oldFile;
+    }
+
+    public void setOldRank(int oldRank) {
+        this.oldRank = oldRank;
+    }
+
+    public void setNewFile(int newFile) {
+        this.newFile = newFile;
+    }
+
+    public void setNewRank(int newRank) {
+        this.newRank = newRank;
+    }
+
+    public int getOldFile() {
+        return oldFile;
+    }
+
+    public int getOldRank() {
+        return oldRank;
+    }
+
+    public int getNewFile() {
+        return newFile;
+    }
+
+    public int getNewRank() {
+        return newRank;
     }
 }
