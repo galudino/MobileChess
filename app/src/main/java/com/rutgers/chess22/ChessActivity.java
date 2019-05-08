@@ -20,12 +20,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import model.PieceType;
+import model.chess_set.Piece;
 import model.game.Game;
+import model.game.Move;
 import model.game.Position;
 
 class debug {
@@ -41,7 +44,7 @@ class debug {
  * @author patricknogaj
  * @author gemuelealudino
  */
-public class ChessActivity extends AppCompatActivity implements View.OnClickListener {
+public class ChessActivity extends AppCompatActivity implements View.OnClickListener, DialogInterface.OnClickListener {
 
     private static int MAX_LENGTH_WIDTH = 8;
 
@@ -58,6 +61,13 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     public static final String PIECE_WK = "wK";
     public static final String PIECE_WP = "wP";
     public static final String PIECE_NO = "--";
+
+    private EditText gameTitle;
+    private String saveTitle;
+
+    private int oldFile, oldRank, newFile, newRank;
+
+    private AlertDialog.Builder promotionPicker;
 
 
     private static final String linearLayoutChessboardTag = "linearLayoutChessboard";
@@ -96,6 +106,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     private boolean resignRequested;    // activated by buttonResign
 
     private Game game;
+
+    private PieceType promotionType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,6 +148,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         resignRequested = false;
 
         game = new Game();
+
+        promotionPicker = new AlertDialog.Builder(this);
 
         displayTurn = (TextView) findViewById(R.id.displayTurn);
         displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
@@ -182,6 +196,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                     break;
                 case buttonUndoTag:
                     debug.log("ChessActivity::onClick", "Clicked buttonUndo");
+                    doUndo();
                     break;
                 case buttonDrawTag:
                     debug.log("ChessActivity::onClick", "Clicked buttonDraw");
@@ -277,6 +292,108 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 default:
                     break;
             }
+        }
+    }
+
+    private void doUndo() {
+        if (game.getLastMove() != null) {
+            game.readInput("undo");
+
+            /**
+             * Do graphical portion here.
+             */
+
+            Move lastMove = game.getLastMoveUndone();
+            PieceType promotedFrom = lastMove.getPromotedFrom();
+            Piece piece = lastMove.getLastPiece();
+            int oldFile = lastMove.getStartPosition().getFile();
+            int oldRank = lastMove.getStartPosition().getRank();
+            int newFile = lastMove.getEndPosition().getFile();
+            int newRank = lastMove.getEndPosition().getRank();
+
+            Move lastKill = game.getLastKillUndone();
+            Piece pieceKill = lastKill.getLastPiece();
+            int oldFileKill = lastKill.getStartPosition().getFile();
+            int oldRankKill = lastKill.getStartPosition().getRank();
+
+            // make a tag like <file><rank><color><piece>
+            // 00WP means a1 white pawn
+
+            oldTag = String.format("%d%d%s", newFile, newRank, piece);
+            newTag = String.format("%d%d%s", oldFile, oldRank, piece);
+
+            /**
+             * Start by reversing a move (graphically)
+             */
+            moveGraphicalPieces(newFile, newRank, oldFile, oldRank);
+
+            /**
+             * If a piece was a promoted pawn, demote it (graphically)
+             */
+            if (promotedFrom != null) {
+                board[oldFile][oldRank].setImageResource(R.drawable.transparent);
+                if (piece.isWhite()) {
+                    board[oldFile][oldRank].setImageResource(R.drawable.whitepawn);
+                } else {
+                    board[oldFile][oldRank].setImageResource(R.drawable.blackpawn);
+                }
+            }
+
+            /**
+             * If a piece was killed during a move, bring it back (graphically)
+             */
+            if (lastKill.getLocalTime().equals(lastMove.getLocalTime())) {
+                int imageResourceID = -1;
+
+                String str = pieceKill.toString();
+
+                switch (str) {
+                    case PIECE_BR:
+                        imageResourceID = R.drawable.blackrook;
+                        break;
+                    case PIECE_BN:
+                        imageResourceID = R.drawable.blackknight;
+                        break;
+                    case PIECE_BB:
+                        imageResourceID = R.drawable.blackbishop;
+                        break;
+                    case PIECE_BQ:
+                        imageResourceID = R.drawable.blackqueen;
+                        break;
+                    case PIECE_BP:
+                        imageResourceID = R.drawable.blackpawn;
+                        break;
+                    case PIECE_WR:
+                        imageResourceID = R.drawable.whiterook;
+                        break;
+                    case PIECE_WN:
+                        imageResourceID = R.drawable.whiteknight;
+                        break;
+                    case PIECE_WB:
+                        imageResourceID = R.drawable.whitebishop;
+                        break;
+                    case PIECE_WQ:
+                        imageResourceID = R.drawable.whitequeen;
+                        break;
+                    case PIECE_WP:
+                        imageResourceID = R.drawable.whitepawn;
+                    default:
+                        /**
+                         * tagSuffix should not allow this switch
+                         * to hit the default case, but is here nonetheless.
+                         */
+                        //imageResourceID = R.drawable.whitequeen;
+                        break;
+                }
+
+                board[oldFileKill][oldRankKill].setImageResource(imageResourceID);
+            }
+
+            displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
+        } else {
+            /**
+             * TODO notification that there are no moves to undo
+             */
         }
     }
 
@@ -448,15 +565,38 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @return
      */
     private PieceType doPromotion() {
-        PieceType pieceType = PieceType.KNIGHT_R;
+        PieceType pieceType = promotionType;
+        CharSequence[] promotionTypes = new CharSequence[] {"Queen", "Rook", "Bishop", "Knight"};
+        promotionPicker.setTitle("You are able to promote. Please select type of piece to promote to:");
+        promotionPicker.setSingleChoiceItems(promotionTypes, 0, this);
+        promotionPicker.create();
+        promotionPicker.show();
 
+        System.out.println(" " + promotionType);
         /**
          * USER makes decision here.
          */
 
-
-        return pieceType;
+        return promotionType;
     }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        promotionType = null;
+
+        if(which == 0) {
+            promotionType = PieceType.QUEEN;
+        } else if(which == 1) {
+            promotionType = PieceType.ROOK_R;
+        } else if(which == 2) {
+            promotionType = PieceType.BISHOP_R;
+        } else if(which == 3) {
+            promotionType = PieceType.KNIGHT_R;
+        }
+        dialog.dismiss();
+        movePiece(getOldFile(), getOldRank(), getNewFile(), getNewRank());
+    }
+
 
 
 
@@ -882,5 +1022,37 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      */
     public String getSelectedObject() {
         return selectedObject;
+    }
+
+    public void setOldFile(int oldFile) {
+        this.oldFile = oldFile;
+    }
+
+    public void setOldRank(int oldRank) {
+        this.oldRank = oldRank;
+    }
+
+    public void setNewFile(int newFile) {
+        this.newFile = newFile;
+    }
+
+    public void setNewRank(int newRank) {
+        this.newRank = newRank;
+    }
+
+    public int getOldFile() {
+        return oldFile;
+    }
+
+    public int getOldRank() {
+        return oldRank;
+    }
+
+    public int getNewFile() {
+        return newFile;
+    }
+
+    public int getNewRank() {
+        return newRank;
     }
 }
