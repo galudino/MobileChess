@@ -938,6 +938,15 @@ public final class Game {
 		drawGranted = false;
 		willResign = false;
 	}
+	
+	/**
+	 * Called by ChessActivity, retrieves the last move undone
+	 * 
+	 * @return the last move undone
+	 */
+	public Move getLastMoveUndone() {
+		return board.getLastMoveUndone();
+	}
 
 	/**
 	 * Undoes the last move in the move list -- if the last move is paired with

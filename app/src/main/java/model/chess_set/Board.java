@@ -155,6 +155,8 @@ public final class Board {
 	private PieceType pawnPromoteType;
 	
 	private Pawn pawnSaved;
+	
+	private Move lastMoveUndone;
 
 	/**
 	 * Default constructor
@@ -192,6 +194,8 @@ public final class Board {
 		pawnPromoteType = null;
 		
 		pawnSaved = null;
+		
+		lastMoveUndone = null;
 	}
 
 	/**
@@ -235,6 +239,15 @@ public final class Board {
 		} else {
 			return moveList;
 		}
+	}
+	
+	/**
+	 * Returns the last move undone, for ChessActivity
+	 * 
+	 * @return the last move undone
+	 */
+	public Move getLastMoveUndone() {
+		return lastMoveUndone;
 	}
 
 	/**
@@ -355,6 +368,7 @@ public final class Board {
 		
 		startPosCell.pieceRef = piece;  // return piece to former start position
 				
+		lastMoveUndone = lastMove;
 		moveList.remove(lastMove);			// remove the move from the list
 		--moveCounter;					// decrement the move counter
 		
