@@ -36,6 +36,9 @@ public class Move {
 	private LocalTime localTime;
 
 	private int moveNumber;
+	
+	private boolean willDraw;
+	private boolean didDraw;
 
 	/**
 	 * Parameterized constructor
@@ -56,6 +59,44 @@ public class Move {
 
 		this.moveNumber = moveNumber;
 		localTime = LocalTime.now();
+		
+		this.willDraw = false;
+	}
+	
+	/**
+	 * Mutator to log a player's acceptance of an opponent's draw
+	 * 
+	 * @param didDraw the state of didDraw
+	 */
+	public void setDidDraw(boolean didDraw) {
+		this.didDraw = didDraw;
+	}
+	
+	/**
+	 * Accessor to retrieve a player's acceptance of an opponent's draw
+	 * 
+	 * @return the state of didDraw
+	 */
+	public boolean getDidDraw() {
+		return didDraw;
+	}
+	
+	/**
+	 * Accessor to retrieve a player's request for a draw
+	 * 
+	 * @return the state of willDraw
+	 */
+	public boolean getWillDraw() {
+		return willDraw;
+	}
+	
+	/**
+	 * Mutator to log a player's request for a draw
+	 * 
+	 * @param willDraw the state of willDraw
+	 */
+	public void setWillDraw(boolean willDraw) {
+		this.willDraw = willDraw;
 	}
 
 	/**

@@ -116,6 +116,17 @@ public final class PieceSet {
 	}
 	
 	/**
+	 * Mutator, called by Board::undoMovePiece, to demote a promoted
+	 * pawn
+	 * 
+	 * @param pawnToRestore the desired Pawn to restore
+	 */
+	void demotePawn(Pawn pawnToRestore) {
+		PieceType previousType = pawnToRestore.pieceType;
+		pieceArray[previousType.ordinal()] = pawnToRestore;
+	}
+	
+	/**
 	 * Promotes a Pawn to a Queen, Bishop, Knight, or Rook.
 	 * Precondition: @see Board.java, line 276
 	 * promoType must be QUEEN, BISHOP_R/L, KNIGHT_R/L, or ROOK_R/L.
@@ -170,7 +181,7 @@ public final class PieceSet {
 			default:
 				break;
 			}
-
+			
 			break;
 		case ROOK_R:
 			switch (piece.pieceType) {
@@ -189,7 +200,7 @@ public final class PieceSet {
 			default:
 				break;
 			}
-
+			
 			break;
 		default:
 			System.err.println(

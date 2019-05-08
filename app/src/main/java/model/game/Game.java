@@ -13,6 +13,8 @@ package model.game;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -97,6 +99,14 @@ public final class Game {
 	private PieceType pawnPromoteType;
 
 	private PieceType.Color gameWinner;
+	
+	private String gameTitleString;
+	private String gameDateString;
+	
+	private DateTimeFormatter dateTimeFormatter;
+	
+	private static final String OUTPUT_DIR_CLI = "dat/";
+	private static final String OUTPUT_EXT = "chess22";
 
 	/**
 	 * Default constructor
@@ -144,6 +154,11 @@ public final class Game {
 		pawnPromoteType = null;
 
 		gameWinner = null;
+		
+		dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/YY hh:mm:ss a");
+		
+		gameTitleString = "<untitled>";
+		gameDateString = gameStartTime.format(dateTimeFormatter);
 	}
 
 	/**
@@ -254,6 +269,42 @@ public final class Game {
 	 */
 	public void togglePieceSetLog() {
 		debugPieceSetLog = debugPieceSetLog ? false : true;
+	}
+	
+	/**
+	 * Mutator to set the gameTitleString
+	 * 
+	 * @param gameTitleString the game's title
+	 */
+	public void setGameTitleString(String gameTitleString) {
+		this.gameTitleString = gameTitleString;
+	}
+	
+	/**
+	 * Mutator to set the gameDateString
+	 * 
+	 * @param gameDateString the game's date string
+	 */
+	public void setGameDateString(String gameDateString) {
+		this.gameDateString = gameDateString;
+	}
+	
+	/**
+	 * Accessor to get gameTitleString
+	 * 
+	 * @return the game title string
+	 */
+	public String getGameTitleString() {
+		return gameTitleString;
+	}
+	
+	/**
+	 * Accessor to get gameDateString
+	 * 
+	 * @return the game date string
+	 */
+	public String getGameDateString() {
+		return gameDateString;
 	}
 
 	/**
@@ -643,6 +694,7 @@ public final class Game {
 	 * @param inputFilePath String representing the input file to be read
 	 * @throws IOException On nonexistent inputFilePath
 	 */
+	/*
 	public void startFromFile(String inputFilePath) throws IOException {
 		inputFile = new File(inputFilePath);
 
@@ -710,6 +762,96 @@ public final class Game {
 		bufferedReader.close();
 		fileReader.close();
 	}
+	*/
+	
+	/**
+	 * Starts a game from a String inputFilePath to an existing file.
+	 * Precondition: File to inputFilePath must exist.
+	 * 
+	 * Reads a specific markup format.
+	 * 
+	 * @param inputFilePath String representing the input file to be read
+	 * @throws IOException On nonexistent inputFilePath
+	 */
+	public void startFromFile(String inputFilePath) throws IOException {
+		inputFile = new File(inputFilePath);
+		
+		if (inputFile.exists() == false) {
+			output = "Error: " + inputFilePath + " does not exist.";
+			System.err.println(output);
+			System.exit(0);
+		}
+
+		fileReader = new FileReader(inputFile);
+		bufferedReader = new BufferedReader(fileReader);
+		input = "";
+
+		if (printBoard) {
+			System.out.println(board);
+		}
+				
+		input = ((BufferedReader)bufferedReader).readLine();
+		
+		if (input.equals("[GAME_LIST]")) {
+			while ((input = ((BufferedReader)bufferedReader).readLine()) != null) {
+				if (input.equals("\t[TITLE]")) {
+					gameTitleString = ((BufferedReader)bufferedReader).readLine().trim();
+				} else if (input.equals("\t[DATE]")) {
+					gameDateString = ((BufferedReader)bufferedReader).readLine().trim();
+				} else if (input.equals("\t[MOVES]")) {
+					while (active) {
+						do {
+							validMoveInput = false;
+							
+							input = ((BufferedReader) bufferedReader).readLine().trim();
+							System.out.println();
+
+							if (input == null) {
+								bufferedReader.close();
+								fileReader.close();
+								inputFile = null;
+								start();
+								break;
+							}
+
+							readInput(input);
+							System.out.println(output);
+
+							if (didDraw || didResign || !active) {
+								break;
+							}
+						} while (validMoveInput == false);
+
+						if (active) {
+							if (printBoard) {
+								System.out.println(boardToString());
+							}
+
+							if (debugPostMoveLog) {
+								printPostMoveLog();
+							}
+
+							if (debugMoveLog) {
+								printMoveLog();
+							}
+
+							if (debugPieceSetLog) {
+								if (whitesMove == false) {
+									white.printPieceSet();
+								} else {
+									black.printPieceSet();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		inputFile = null;
+		bufferedReader.close();
+		fileReader.close();
+	}
 
 	/**
 	 * Starts a game from a String inputFilePath to an existing file. One move
@@ -721,93 +863,101 @@ public final class Game {
 	 */
 	public void startFromFilePlayByPlay(String inputFilePath)
 			throws IOException {
-		if (board.getLastMove() != null) {
-			System.err.println(
-					"Cannot call start() on a game that is already in progress!");
-			return;
-		}
-
 		inputFile = new File(inputFilePath);
-
+		
 		if (inputFile.exists() == false) {
 			output = "Error: " + inputFilePath + " does not exist.";
 			System.err.println(output);
 			System.exit(0);
 		}
 
-		System.out.println("*** PLAY BY PLAY MODE ***\n");
-
 		scan = new Scanner(System.in);
 		fileReader = new FileReader(inputFile);
 		bufferedReader = new BufferedReader(fileReader);
 		input = "";
 
+		System.out.println("*** PLAY BY PLAY MODE ***\n");
+		
 		if (printBoard) {
 			System.out.println(board);
 		}
+		
+		input = ((BufferedReader)bufferedReader).readLine();
+		
+		String line = "";
+		
+		if (input.equals("[GAME_LIST]")) {			
+			while ((input = ((BufferedReader)bufferedReader).readLine()) != null) {
+				if (input.equals("\t[TITLE]")) {
+					gameTitleString = ((BufferedReader)bufferedReader).readLine().trim();
+				} else if (input.equals("\t[DATE]")) {
+					gameDateString = ((BufferedReader)bufferedReader).readLine().trim();
+				} else if (input.equals("\t[MOVES]")) {
+					while (active) {
+						do {
+							validMoveInput = false;
+							
+							output = whitesMove ? "White's " : "Black's ";
 
-		while (active) {
-			do {
-				validMoveInput = false;
+							System.out.print(output + "move (Hit ENTER to see the next move): ");
+							line = scan.nextLine();
+							
+							while (!line.equals("")) {
+								System.out.println("Hit ENTER to see the next move or type X and ENTER to quit.");
+								
+								line = scan.nextLine();
+								
+								if (line.equals("X")) {
+									return;
+								}
+							}
+							
+							input = ((BufferedReader) bufferedReader).readLine().trim();
+							System.out.println();
 
-				output = whitesMove ? "White's " : "Black's ";
+							if (input == null) {
+								bufferedReader.close();
+								fileReader.close();
+								inputFile = null;
+								start();
+								break;
+							}
 
-				System.out.print(
-						output + "move (press ENTER to see the next move):");
-				input = scan.nextLine();
+							readInput(input);
+							System.out.println(output);
 
-				while (input.equals("") == false) {
-					System.out.println(
-							"Hit ENTER to see the next move or X to quit.");
+							if (didDraw || didResign || !active) {
+								break;
+							}
+						} while (validMoveInput == false);
 
-					input = scan.nextLine();
+						if (active) {
+							if (printBoard) {
+								System.out.println(boardToString());
+							}
 
-					if (input.equalsIgnoreCase("X")) {
-						System.exit(0);
-					}
-				}
+							if (debugPostMoveLog) {
+								printPostMoveLog();
+							}
 
-				input = ((BufferedReader) bufferedReader).readLine();
-				System.out.println();
+							if (debugMoveLog) {
+								printMoveLog();
+							}
 
-				if (input == null) {
-					bufferedReader.close();
-					fileReader.close();
-					start();
-					break;
-				}
-
-				readInput(input);
-				System.out.println(output);
-
-				if (didDraw || didResign || !active) {
-					break;
-				}
-			} while (validMoveInput == false);
-
-			if (active) {
-				if (printBoard) {
-					System.out.println(boardToString());
-				}
-
-				if (debugPostMoveLog) {
-					printPostMoveLog();
-				}
-
-				if (debugMoveLog) {
-					printMoveLog();
-				}
-
-				if (debugPieceSetLog) {
-					if (whitesMove == false) {
-						white.printPieceSet();
-					} else {
-						black.printPieceSet();
+							if (debugPieceSetLog) {
+								if (whitesMove == false) {
+									white.printPieceSet();
+								} else {
+									black.printPieceSet();
+								}
+							}
+						}
 					}
 				}
 			}
 		}
-
+		
+		inputFile = null;
 		bufferedReader.close();
 		fileReader.close();
 	}
@@ -839,9 +989,23 @@ public final class Game {
 						+ " has already won the game.");
 				return;
 			}
+		}
+		
+		if (input.equals("save -cli")) {
+			output = "";
+			
+			try {
+				saveGameCLI();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			return;
 		} else if (input.equals("save")) {
 			output = "";
-			saveGame();
+			
+			// for GUI chess
+			
 			return;
 		}
 
@@ -909,6 +1073,7 @@ public final class Game {
 		if (didDraw || didResign || board.isCheckmate()) {
 			active = false;
 			gameEndTime = LocalDateTime.now();
+			gameDateString = gameEndTime.format(dateTimeFormatter);
 
 			if (didDraw) {
 				output = "draw";
@@ -937,8 +1102,17 @@ public final class Game {
 
 		drawGranted = false;
 		willResign = false;
+
+		if (willDraw) {
+			board.getLastMove().setWillDraw(willDraw);
+		}
+
+		if (didDraw) {
+			board.getLastMove().setDidDraw(didDraw);
+		}
+
 	}
-	
+
 	/**
 	 * Called by ChessActivity, retrieves the last move undone
 	 * 
@@ -947,7 +1121,7 @@ public final class Game {
 	public Move getLastMoveUndone() {
 		return board.getLastMoveUndone();
 	}
-	
+
 	/**
 	 * Called by ChessActivity, retrieves the last kill undone
 	 * 
@@ -986,13 +1160,157 @@ public final class Game {
 		// Change the turn to the opposite caller.
 		whitesMove = whitesMove ? false : true;
 	}
+	
+	/**
+	 * A user should define a name for this game first
+	 * using setGameTitleString(String gameTitleString) before
+	 * running this method.
+	 */
+	public void saveGameCLI() throws IOException {
+		System.out.println("\n[State of game saved at " + LocalTime.now() + "]");
+		
+		scan = new Scanner(System.in);
+		
+		String title = "";
+		System.out.print(
+				"Provide a title for the saved game and hit ENTER ==> ");
+		title = scan.nextLine();
+		
+		String filename = 
+				String.format("%s_%s.%s", title, gameStartTime, OUTPUT_EXT);
+		
+		String filepath = OUTPUT_DIR_CLI + filename;
+		
+		File file = new File(filepath);
+		if (!file.exists()) {
+			PrintWriter pw = new PrintWriter(filepath, "UTF-8");
+			pw.print("");
+			pw.close();
+		}
+		
+		BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+		
+		bw.write(generateSaveGameString());
+		
+		bw.flush();
+		bw.close();
+	}
+	
+	/**
+	 * Saving a game as per the GUI
+	 * 
+	 * (provide a name for the game title first)
+	 * 
+	 * @throws IOException if file not found
+	 */
+	public void saveGameGUI(String filepath) throws IOException {
+		System.out.println("Entered saveGameGUI()");
+		
+		System.out.println("\n[State of game saved at " + LocalTime.now() + "]");
+		
+		scan = new Scanner(System.in);
+		
+		String title = gameTitleString;
+		
+		String filename = 
+				String.format("%s_%s.%s", title, gameStartTime, OUTPUT_EXT);
+		
+		String path = filepath + filename;
+		
+		File file = new File(filepath);
+		if (!file.exists()) {
+			PrintWriter pw = new PrintWriter(path, "UTF-8");
+			pw.print("");
+			pw.close();
+		}
+		
+		BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+		
+		bw.write(generateSaveGameString());
+		
+		bw.flush();
+		bw.close();	
+	}
 
 	/**
-	 * Saves the current state of the game, regardless if active or not
+	 * Generates a string that comprises the contents of a would-be
+	 * input file representing a game
 	 */
-	private void saveGame() {
-		System.out
-				.println("\n[State of game saved at " + LocalTime.now() + "]");
+	public String generateSaveGameString() {
+		String moveListString = generateMoveListString();
+
+		String gameTitle = gameTitleString;
+		String gameDate = gameDateString;
+		
+		String saveGameString = "";
+		
+		saveGameString += "[GAME_LIST]\n";
+		saveGameString += "\n";
+		saveGameString += "\t[TITLE]\n";
+		saveGameString += "\t\t" + gameTitle + "\n";
+		saveGameString += "\t[/TITLE]\n";
+		saveGameString += "\n";
+		saveGameString += "\t[DATE]\n";
+		saveGameString += "\t\t" + gameDate + "\n";
+		saveGameString += "\t[/DATE]\n";
+		saveGameString += "\n";
+		saveGameString += "\t[MOVES]\n";
+		saveGameString += moveListString;
+		saveGameString += "\t[/MOVES]\n";
+		saveGameString += "\n[GAME_LIST]";
+		saveGameString += "\n";
+		
+		return saveGameString;
+	}
+	
+
+	/**
+	 * Generates a string that consists of a move list that can be loaded into
+	 * startFromFile()
+	 * 
+	 * @return a string that is formatted for use by startFromFile() as per the
+	 *         current moveList
+	 */
+	private String generateMoveListString() {
+		List<Move> moveList = board.getMoveList();
+
+		String moveListString = "";
+		
+		Iterator<Move> iter = moveList.iterator();
+		while (iter.hasNext()) {
+			moveListString += "\t\t";
+			Move m = iter.next();
+
+			if (m.getEndPosition() != null) {
+				moveListString += String.format("%s %s", m.getStartPosition(),
+						m.getEndPosition());
+
+				if (m.getPromotedFrom() != null) {
+					moveListString += String.format(" %s",
+							m.getLastPiece().toString().substring(1));
+				}
+
+				if (m.getWillDraw()) {
+					moveListString += String.format(" %s", "draw?");
+				}
+			}
+
+			if (!iter.hasNext()) {
+				if (board.isCheckmate() == false) {
+					if (didResign) {
+						moveListString += "\t\tresign";
+					}
+
+					if (didDraw) {
+						moveListString += "\n\t\tdraw";
+					}
+				}
+			}
+
+			moveListString += "\n";
+		}
+
+		return moveListString;
 	}
 
 	/**

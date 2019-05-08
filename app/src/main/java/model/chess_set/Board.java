@@ -230,17 +230,20 @@ public final class Board {
 	}
 	
 	/**
-	 * Accessor to retrieve the moveList of a game that has ended
-	 * in a checkmate, resignation, or draw
+	 * Accessor to retrieve the moveList of a game
 	 * 
 	 * @return a moveList of a finished game, otherwise if game active -- null
 	 */
 	public List<Move> getMoveList() {
+		/*
 		if (outputWinner.equals("(game still active)")) {
 			return null;
 		} else {
 			return moveList;
 		}
+		*/
+		
+		return moveList;
 	}
 	
 	/**
@@ -474,7 +477,7 @@ public final class Board {
 			PieceSet pieceSet = pawn.isWhite() ? whiteSet : blackSet;
 			
 			// Restore the promoted pawn to its previous form
-			//pieceSet.demotePawn(pawn);
+			pieceSet.demotePawn(pawn);
 		}
 		
 		
