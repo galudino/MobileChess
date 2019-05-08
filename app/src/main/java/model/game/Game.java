@@ -967,7 +967,6 @@ public final class Game {
 
 		// Change the turn to the opposite caller.
 		whitesMove = whitesMove ? false : true;
-
 	}
 
 	/**

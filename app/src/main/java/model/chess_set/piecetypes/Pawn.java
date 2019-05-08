@@ -258,6 +258,10 @@ public final class Pawn extends Piece {
 		}
 		return result;
 	}
+	
+	public void toggleFirstMove() {
+		firstMove = firstMove ? false : true;
+	}
 
 	@Override
 	public String toString() {

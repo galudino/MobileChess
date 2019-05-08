@@ -153,6 +153,8 @@ public final class Board {
 	private String outputWinner;
 
 	private PieceType pawnPromoteType;
+	
+	private Pawn pawnSaved;
 
 	/**
 	 * Default constructor
@@ -188,6 +190,8 @@ public final class Board {
 		outputWinner = "(game still active)";
 
 		pawnPromoteType = null;
+		
+		pawnSaved = null;
 	}
 
 	/**
@@ -324,7 +328,7 @@ public final class Board {
 	 * and if the last move is paired with a kill, that kill is undone as well
 	 * 
 	 */
-	public void undoMovePiece() {
+	public void undoMovePiece() {		
 		Move lastMove = getLastMove();
 		Move lastKill = getLastKill();
 	
@@ -346,21 +350,92 @@ public final class Board {
 		 * Start by reversing a move.
 		 */
 		piece.posRef = startPos;		// restore the former position to piece
-
+		
 		endPosCell.pieceRef = null;		// remove piece from old end position
-
+		
 		startPosCell.pieceRef = piece;  // return piece to former start position
 				
 		moveList.remove(lastMove);			// remove the move from the list
 		--moveCounter;					// decrement the move counter
 		
+		/**
+		 * If an undo results in a pawn reverting back to a position
+		 * prior to its first move, we must determine this and toggle
+		 * the "firstMove" state for this pawn back to true.
+		 */
+		boolean pawnMovedOnlyOnce = true;
+		
+		if (piece.isPawn()) {
+			// If piece (the piece from the last move) was a pawn...
+			
+			for (int i = 0; i < moveList.size() - 1; i++) {
+				// Search e
+				Piece curr = moveList.get(i).getLastPiece();
+				
+				// If piece is found anywhere in the list
+				// (we've already removed the last move),
+				// this means the pawn has moved more than once.
+				if (piece == curr) {
+					pawnMovedOnlyOnce = false;
+					break;
+				}
+			}
+		}
+		
+		/**
+		 * Restoring the "firstMove" status of the Pawn in question
+		 */
+		if (piece.isPawn() && pawnMovedOnlyOnce) {
+			Pawn pawn = (Pawn)(piece);
+			pawn.toggleFirstMove();
+		}
+		
+		if (moveList.size() == 0) {
+			cell = new Cell[MAX_LENGTH_WIDTH][MAX_LENGTH_WIDTH];
+
+			for (int file = 0; file < MAX_LENGTH_WIDTH; file++) {
+				for (int rank = 0; rank < MAX_LENGTH_WIDTH; rank++) {
+					cell[file][rank] = new Cell(file, rank);
+				}
+			}
+
+			whiteSet = new PieceSet(PieceType.Color.WHITE);
+			blackSet = new PieceSet(PieceType.Color.BLACK);
+
+			assignWhitePieces();
+			assignBlackPieces();
+
+			//moveList = new ArrayList<Move>();
+
+			moveCounter = 0;
+			killCounter = 0;
+
+			//kingMoves = new Position[MAX_LENGTH_WIDTH];
+			kingSafe = true;
+
+			promoteWhite = false;
+			promoteBlack = false;
+			
+			checkmate = false;
+			
+			outputWinner = "(game still active)";
+
+			pawnPromoteType = null;
+			
+			pawnSaved = null;
+		}
+		
+		/**
+		 * Reverse a promotion.
+		 */
 		if (promotedFrom != null) {
 			// create a new pawn
-			Pawn pawn = new Pawn(promotedFrom, thisColor);
-			
+			//Pawn pawn = new Pawn(promotedFrom, thisColor);
+			Pawn pawn = pawnSaved;
+						
 			// assign the pawn position to its former position
 			// before promotion
-			pawn.posRef = startPos;
+			//pawn.posRef = startPos;
 			
 			// piece is now pawn
 			piece = pawn;
@@ -371,12 +446,12 @@ public final class Board {
 			
 			piece.alive = true;
 			
-			
 			PieceSet pieceSet = pawn.isWhite() ? whiteSet : blackSet;
 			
 			// Restore the promoted pawn to its previous form
 			pieceSet.demotePawn(pawn);
 		}
+		
 		
 		/**
 		 * Then reverse a kill.
@@ -411,16 +486,18 @@ public final class Board {
 
 		Cell oldPositionCell = getCell(piece.posRef);
 		Cell newPositionCell = getCell(newPosition);
-
+		
 		boolean pieceMoveLegal = piece.isMoveLegal(cell, newPosition);
 		
-		/* Prints state of board (cell[][]) line by line
+		//System.out.println(piece.posRef + " " + newPosition);
+		
+		/* Prints state of board (cell[][]) line by line */
 		for (int i = 0; i < cell.length; i++) {
 			for (int j = 0; j < cell[i].length; j++) {
 				System.out.println(cell[i][j].loc + " " + cell[i][j].pieceRef);
 			}
 		}
-		*/
+		
 	
 		King king = null;
 
@@ -590,6 +667,10 @@ public final class Board {
 					: PieceType.Color.BLACK;
 
 			pawnPromoteType = piece.pieceType;
+			
+			if (piece instanceof Pawn) {
+				pawnSaved = (Pawn)(piece);
+			}
 			piece = pieceSet.promotePawn(piece, promoType, color);
 		}
 
