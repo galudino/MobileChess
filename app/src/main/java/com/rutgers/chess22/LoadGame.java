@@ -54,6 +54,9 @@ public class LoadGame extends AppCompatActivity implements View.OnClickListener 
     private static final int WIDTH_DELETE       = 40;
     private static final int HEIGHT_ALL         = 20;
 
+    public static final String INTENT_DATA_KEY_FILENAME     = "FileName";
+    public static final String INTENT_DATA_FILENAME_LAST    = "LastGame";
+
     Comparator<String> title_norm = new Comparator<String>() {
         @Override
         public int compare(String o1, String o2) {
@@ -263,9 +266,9 @@ public class LoadGame extends AppCompatActivity implements View.OnClickListener 
         else if (tag.startsWith(TAG_PLAYBACK)) {
             String fileName = tag.substring(TAG_PLAYBACK.length());
             //
-            //Intent intent = new Intent(LoadGame.this, ChessActivity.this);
-           // intent.putExtra(INTENT_DATA_KEY_FILENAME, fileName);
-            //startActivity(intent);
+            Intent intent = new Intent(LoadGame.this, PlaybackGame.class);
+            intent.putExtra(INTENT_DATA_KEY_FILENAME, fileName);
+            startActivity(intent);
         }
     }
 }
