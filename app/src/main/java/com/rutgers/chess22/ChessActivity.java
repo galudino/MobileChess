@@ -180,7 +180,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         displayTurn = (TextView) findViewById(R.id.displayTurn);
         displayTurn.setText(game.isWhitesMove() ? "White players turn" : "Black players turn");
 
-
+        disableUndo = true;
     }
 
     public boolean isFilePresent(String fileName) {
@@ -282,8 +282,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         }
         return text;
     }
-
-
 
     @Override
     public void onClick(View view) {
@@ -484,6 +482,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void doUndo() {
+        buttonUndo.setEnabled(false);
+
         if (game.getLastMove() != null) {
             game.readInput("undo");
 
@@ -877,6 +877,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
                 displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
             }
         }
+
     }
 
     /**
