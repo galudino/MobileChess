@@ -157,6 +157,7 @@ public final class Board {
 	private Pawn pawnSaved;
 	
 	private Move lastMoveUndone;
+	private Move lastKillUndone;
 
 	/**
 	 * Default constructor
@@ -196,6 +197,7 @@ public final class Board {
 		pawnSaved = null;
 		
 		lastMoveUndone = null;
+		lastKillUndone = null;
 	}
 
 	/**
@@ -248,6 +250,15 @@ public final class Board {
 	 */
 	public Move getLastMoveUndone() {
 		return lastMoveUndone;
+	}
+	
+	/**
+	 * Returns the last kill undon, for ChessActivity
+	 * 
+	 * @return the last kill undone
+	 */
+	public Move getLastKillUndone() {
+		return lastKillUndone;
 	}
 
 	/**
@@ -477,6 +488,7 @@ public final class Board {
 			
 			pieceKill.makeAlive();				// make the piece "alive"
 			
+			lastKillUndone = lastKill;
 			moveList.remove(lastKill);	// remove the kill from the list
 			--killCounter;				// decrement the kill counter
 		}		

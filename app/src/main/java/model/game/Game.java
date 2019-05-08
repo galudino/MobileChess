@@ -947,6 +947,15 @@ public final class Game {
 	public Move getLastMoveUndone() {
 		return board.getLastMoveUndone();
 	}
+	
+	/**
+	 * Called by ChessActivity, retrieves the last kill undone
+	 * 
+	 * @return the last kill undone
+	 */
+	public Move getLastKillUndone() {
+		return board.getLastKillUndone();
+	}
 
 	/**
 	 * Undoes the last move in the move list -- if the last move is paired with
