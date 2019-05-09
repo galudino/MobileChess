@@ -228,7 +228,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         return out;
     }
 
-
     public static String makeFileName(File parentDir, String input) {
         input = input.trim();
         input = input.replaceAll("[^a-zA-Z0-9-]", "_");
@@ -238,10 +237,8 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
         //
         SimpleDateFormat dateFormat = new SimpleDateFormat(TMS_FORMAT);  //"dd-MM-yyyy HH:mm:ss"
         String tms  = dateFormat.format(new Date());
-        //
         return parentDir.getPath() + File.separator + tms + input + GAME_FILE_EXT;
     }
-
 
     public static String getTitleFromFileName(String input) {
         String szTemp = input.substring(0, input.length()-GAME_FILE_EXT.length());
@@ -480,8 +477,6 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void doUndo() {
-        buttonUndo.setEnabled(false);
-
         if (game.getLastMove() != null) {
             game.readInput("undo");
 
@@ -497,10 +492,21 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             int newFile = lastMove.getEndPosition().getFile();
             int newRank = lastMove.getEndPosition().getRank();
 
-            Move lastKill = game.getLastKillUndone();
-            Piece pieceKill = lastKill.getLastPiece();
-            int oldFileKill = lastKill.getStartPosition().getFile();
-            int oldRankKill = lastKill.getStartPosition().getRank();
+            Move lastKill = null;
+            if (game.getLastKillUndone() != null) {
+                lastKill = game.getLastKillUndone();
+            }
+
+            //Move lastKill = game.getLastKillUndone();
+
+            Piece pieceKill = null;
+            int oldFileKill = -1;
+            int oldRankKill = -1;
+            if (lastKill != null) {
+                pieceKill = lastKill.getLastPiece();
+                oldFileKill = lastKill.getStartPosition().getFile();
+                oldRankKill = lastKill.getStartPosition().getRank();
+            }
 
             // make a tag like <file><rank><color><piece>
             // 00WP means a1 white pawn
@@ -531,54 +537,57 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
             /**
              * If a piece was killed during a move, bring it back (graphically)
              */
-            if (lastKill.getLocalTime().equals(lastMove.getLocalTime())) {
-                int imageResourceID = -1;
+            if (lastKill != null) {
+                if (lastKill.getLocalTime().equals(lastMove.getLocalTime())) {
+                    int imageResourceID = -1;
 
-                String str = pieceKill.toString();
+                    String str = pieceKill.toString();
 
-                switch (str) {
-                    case PIECE_BR:
-                        imageResourceID = R.drawable.blackrook;
-                        break;
-                    case PIECE_BN:
-                        imageResourceID = R.drawable.blackknight;
-                        break;
-                    case PIECE_BB:
-                        imageResourceID = R.drawable.blackbishop;
-                        break;
-                    case PIECE_BQ:
-                        imageResourceID = R.drawable.blackqueen;
-                        break;
-                    case PIECE_BP:
-                        imageResourceID = R.drawable.blackpawn;
-                        break;
-                    case PIECE_WR:
-                        imageResourceID = R.drawable.whiterook;
-                        break;
-                    case PIECE_WN:
-                        imageResourceID = R.drawable.whiteknight;
-                        break;
-                    case PIECE_WB:
-                        imageResourceID = R.drawable.whitebishop;
-                        break;
-                    case PIECE_WQ:
-                        imageResourceID = R.drawable.whitequeen;
-                        break;
-                    case PIECE_WP:
-                        imageResourceID = R.drawable.whitepawn;
-                    default:
-                        /**
-                         * tagSuffix should not allow this switch
-                         * to hit the default case, but is here nonetheless.
-                         */
-                        //imageResourceID = R.drawable.whitequeen;
-                        break;
+                    switch (str) {
+                        case PIECE_BR:
+                            imageResourceID = R.drawable.blackrook;
+                            break;
+                        case PIECE_BN:
+                            imageResourceID = R.drawable.blackknight;
+                            break;
+                        case PIECE_BB:
+                            imageResourceID = R.drawable.blackbishop;
+                            break;
+                        case PIECE_BQ:
+                            imageResourceID = R.drawable.blackqueen;
+                            break;
+                        case PIECE_BP:
+                            imageResourceID = R.drawable.blackpawn;
+                            break;
+                        case PIECE_WR:
+                            imageResourceID = R.drawable.whiterook;
+                            break;
+                        case PIECE_WN:
+                            imageResourceID = R.drawable.whiteknight;
+                            break;
+                        case PIECE_WB:
+                            imageResourceID = R.drawable.whitebishop;
+                            break;
+                        case PIECE_WQ:
+                            imageResourceID = R.drawable.whitequeen;
+                            break;
+                        case PIECE_WP:
+                            imageResourceID = R.drawable.whitepawn;
+                        default:
+                            /**
+                             * tagSuffix should not allow this switch
+                             * to hit the default case, but is here nonetheless.
+                             */
+                            //imageResourceID = R.drawable.whitequeen;
+                            break;
+                    }
+
+                    board[oldFileKill][oldRankKill].setImageResource(imageResourceID);
                 }
-
-                board[oldFileKill][oldRankKill].setImageResource(imageResourceID);
             }
 
             displayTurn.setText(game.isWhitesMove() ? "White player's turn" : "Black player's turn");
+            buttonUndo.setEnabled(false);
         } else {
             /**
              * TODO notification that there are no moves to undo
