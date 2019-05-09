@@ -202,7 +202,7 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
                 }
             } else if(v == btnForward) {
                 if (currentMove < maxSize) {
-                    updateValues();
+
                     if (next.equals("resign")) {
 
                     } else if (next.equals("draw?")) {
@@ -211,8 +211,10 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
 
                     } else {
                         if (game.canPromote(fileRankArray[0], fileRankArray[1], fileRankArray[2], fileRankArray[3])) {
-
+                            promotion(fileRankArray[1], fileRankArray[2]);
                         }
+
+                        updateValues();
 
                         for (int i = 0; i < 5; i++) {
                             System.out.println(fileRankArray[i]);

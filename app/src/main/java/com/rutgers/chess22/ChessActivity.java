@@ -915,7 +915,7 @@ public class ChessActivity extends AppCompatActivity implements View.OnClickList
      * @param newFile file where a promotable pawn resides
      * @param newRank rank where a promotable pawn resides
      */
-    private void promotion(int newFile, int newRank) {
+    void promotion(int newFile, int newRank) {
         /**
          *  The string representation of a Piece implies its PieceType,
          *  and its PieceType.color, and is identical in form
