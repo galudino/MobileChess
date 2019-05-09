@@ -1,8 +1,11 @@
 package com.rutgers.chess22;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -25,7 +28,6 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
     private Button btnMainMenu;
 
     private List<String> stringMoveList;
-
 
     private String previous;
     private String next;
@@ -50,8 +52,6 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
     private static final String validFileRankWithPromotion = String
             .format("%s%s%s", validFileRankRegex, whiteSpaceRegex, pieceRegex);
 
-
-    /*
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,32 +61,13 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
         playersTurn.setText(game.isWhitesMove() ? "Whites turn" : "Blacks turn");
 
         btnBackward = findViewById(R.id.btnBackward);
+        btnBackward.setOnClickListener(this);
+
         btnForward = findViewById(R.id.btnForward);
+        btnForward.setOnClickListener(this);
+
         btnMainMenu = findViewById(R.id.btnMainMenu);
-
-
-        initializeChessboard(this);
-
-        stringMoveList = null;
-
-        Intent intent = getIntent();
-        String fileName = intent.getExtras().getString(LoadGame.INTENT_DATA_KEY_FILENAME);
-
-        String fullPath = getFilesDir().getAbsolutePath() + File.separator + fileName;
-    }
-    */
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_playback_game);
-
-        playersTurn = findViewById(R.id.playersTurn);
-        playersTurn.setText(game.isWhitesMove() ? "Whites turn" : "Blacks turn");
-
-        btnBackward = findViewById(R.id.btnBackward);
-        btnForward = findViewById(R.id.btnForward);
-        btnMainMenu = findViewById(R.id.btnMainMenu);
+        btnMainMenu.setOnClickListener(this);
 
         initializeChessboard(this);
 
@@ -123,7 +104,22 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
         } else if (next.matches(validFileRankWithPromotion)) {
             fileRankArray = game.getFileRankArray(next);
         } else if (next.equals("resign")) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(PlaybackGame.this);
+            builder.setCancelable(true);
+            builder.setTitle("GAME OVER: Resign.");
+            builder.setMessage("The winner is: NOBODY.\nContinue to main menu...");
+            builder.setPositiveButton("Continue",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent mainMenu = new Intent(PlaybackGame.this, MainActivity.class);
+                            startActivity(mainMenu);
+                        }
+                    });
 
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            return;
         }
     }
 
@@ -195,16 +191,18 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
 
     @Override
     public void onClick(View v) {
-
-
         if(v instanceof Button) {
             if(v == btnBackward) {
                 if (currentMove > 0) {
                     doUndo();
-                    --currentMove;
+                    currentMove--;
+                    updateValues();
+
+                    playersTurn.setText(game.isWhitesMove() ? "Whites turn" : "Blacks turn");
                 }
             } else if(v == btnForward) {
                 if (currentMove < maxSize) {
+                    updateValues();
                     if (next.equals("resign")) {
 
                     } else if (next.equals("draw?")) {
@@ -221,8 +219,10 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
                         }
 
                         movePiece(fileRankArray[0], fileRankArray[1], fileRankArray[2], fileRankArray[3]);
-                        updateValues();
+
                         ++currentMove;
+
+                        playersTurn.setText(game.isWhitesMove() ? "Whites turn" : "Blacks turn");
                     }
                 }
             } else if(v == btnMainMenu) {

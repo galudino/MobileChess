@@ -232,13 +232,14 @@ public final class Game {
 				break;
 			}
 		}
-		
+
 		while (scan.hasNext()) {
-			str = scan.nextLine();
-			if (str.contentEquals("[/MOVES]")) {
+			str = scan.nextLine().trim();
+			if (str.equals("[/MOVES]")) {
 				break;
+			} else {
+				moveListInputFile.add(str.trim());
 			}
-			moveListInputFile.add(str.trim());
 		}
 				
 		scan.close();
@@ -1526,7 +1527,7 @@ public final class Game {
 	 * @return an integer array representing a Piece's current position and the
 	 *         desired position to move to
 	 */
-	private int[] getFileRankArray(String input) {
+	public int[] getFileRankArray(String input) {
 		if (input.equals("draw") || input.equals("resign")) {
 			return null;
 		}
