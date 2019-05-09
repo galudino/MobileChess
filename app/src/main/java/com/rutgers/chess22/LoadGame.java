@@ -90,6 +90,9 @@ public class LoadGame extends AppCompatActivity implements View.OnClickListener 
     TableLayout table;
     List<String> filenameList;
 
+    String fileName;
+
+    Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,7 +175,7 @@ public class LoadGame extends AppCompatActivity implements View.OnClickListener 
     private void insertRows() {
         for (int i = 0; i < filenameList.size(); i++) {
             TableRow tbrow = new TableRow(this);
-            String fileName = filenameList.get(i);
+            fileName = filenameList.get(i);
             //
             {   TextView tv = new TextView(this);
                 tv.setText(getTitleFromFileName(fileName));
@@ -237,6 +240,8 @@ public class LoadGame extends AppCompatActivity implements View.OnClickListener 
             }
             //
             insertRows();
+
+
         }
         else if (tag.equalsIgnoreCase(TAG_DATE)) {
             Comparator<String> comp = date_sort_norm ? date_norm : date_rev;
@@ -254,7 +259,7 @@ public class LoadGame extends AppCompatActivity implements View.OnClickListener 
         }
         else if (tag.startsWith(TAG_DELETE)) {
             for (int i = 0; i < filenameList.size(); i++) {
-                String fileName = filenameList.get(i);
+                fileName = filenameList.get(i);
                 //
                 if ((TAG_DELETE + fileName).equals(tag)) {
                     boolean ret = deleteFile(getFilesDir(), fileName);
@@ -264,11 +269,13 @@ public class LoadGame extends AppCompatActivity implements View.OnClickListener 
             }
         }
         else if (tag.startsWith(TAG_PLAYBACK)) {
-            String fileName = tag.substring(TAG_PLAYBACK.length());
+            fileName = tag.substring(TAG_PLAYBACK.length());
             //
-            Intent intent = new Intent(LoadGame.this, PlaybackGame.class);
+            intent = new Intent(LoadGame.this, PlaybackGame.class);
             intent.putExtra(INTENT_DATA_KEY_FILENAME, fileName);
+
             startActivity(intent);
         }
+
     }
 }
