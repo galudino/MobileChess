@@ -26,6 +26,31 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
 
     private List<String> stringMoveList;
 
+
+    private String previous;
+    private String next;
+
+    private int[] fileRankArray;
+
+    private int currentMove;
+
+    private int maxSize;
+
+    private static final String pieceRegex = "[qQbBnNrR]";
+
+    private static final String whiteSpaceRegex = "[ \\\\t\\\\n\\\\x0b\\\\r\\\\f]";
+    private static final String fileRankRegex = "[a-h][1-8]";
+    private static final String validFileRankRegex = String.format("%s%s%s",
+            fileRankRegex, whiteSpaceRegex, fileRankRegex);
+
+    private static final String drawRegex = "draw\\?";
+    private static final String validFileRankWithDrawRegex = String
+            .format("%s%s%s", validFileRankRegex, whiteSpaceRegex, drawRegex);
+
+    private static final String validFileRankWithPromotion = String
+            .format("%s%s%s", validFileRankRegex, whiteSpaceRegex, pieceRegex);
+
+
     /*
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,15 +95,69 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
         Intent intent = getIntent();
         String fileName = intent.getExtras().getString(LoadGame.INTENT_DATA_KEY_FILENAME);
         Object obj = readObjectFromFile(getFilesDir(), fileName);
-        if(obj != null) {
+        if (obj != null) {
             System.out.println("Opened: " + fileName);
             input += (String) obj;
         }
 
-        System.out.println(input);
+        try {
+            stringMoveList = game.generateMoveListForPlayback(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        maxSize = stringMoveList.size();
 
+        fileRankArray = new int[5];
 
+        currentMove = 0;
+
+        updateValues();
+    }
+
+    public void updateValues() {
+        next = stringMoveList.get(currentMove);
+
+        if (next.matches(validFileRankRegex)) {
+            fileRankArray = game.getFileRankArray(next);
+        } else if (next.matches(validFileRankWithPromotion)) {
+            fileRankArray = game.getFileRankArray(next);
+        } else if (next.equals("resign")) {
+
+        }
+    }
+
+    private int charToInt(char ch) {
+        int intFile = -1;
+
+        switch (ch) {
+            case 'a':
+                intFile = 0;
+                break;
+            case 'b':
+                intFile = 1;
+                break;
+            case 'c':
+                intFile = 2;
+                break;
+            case 'd':
+                intFile = 3;
+                break;
+            case 'e':
+                intFile = 4;
+                break;
+            case 'f':
+                intFile = 5;
+                break;
+            case 'g':
+                intFile = 6;
+                break;
+            case 'h':
+                intFile = 7;
+                break;
+        }
+
+        return intFile;
     }
 
     public static Object readObjectFromFile(File parentDir, String fileName) {
@@ -120,9 +199,32 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
 
         if(v instanceof Button) {
             if(v == btnBackward) {
-
+                if (currentMove > 0) {
+                    doUndo();
+                    --currentMove;
+                }
             } else if(v == btnForward) {
+                if (currentMove < maxSize) {
+                    if (next.equals("resign")) {
 
+                    } else if (next.equals("draw?")) {
+
+                    } else if (next.equals("draw")) {
+
+                    } else {
+                        if (game.canPromote(fileRankArray[0], fileRankArray[1], fileRankArray[2], fileRankArray[3])) {
+
+                        }
+
+                        for (int i = 0; i < 5; i++) {
+                            System.out.println(fileRankArray[i]);
+                        }
+
+                        movePiece(fileRankArray[0], fileRankArray[1], fileRankArray[2], fileRankArray[3]);
+                        updateValues();
+                        ++currentMove;
+                    }
+                }
             } else if(v == btnMainMenu) {
                 Intent mainMenu = new Intent(PlaybackGame.this, MainActivity.class);
                 startActivity(mainMenu);
