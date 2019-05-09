@@ -21,16 +21,11 @@ public class PlaybackGame extends ChessActivity implements View.OnClickListener 
         setContentView(R.layout.activity_playback_game);
 
         playersTurn = findViewById(R.id.playersTurn);
-        playersTurn.setText(game.isWhitesMove() ? "Whites turn || ": "Blacks turn || ");
+        playersTurn.setText(game.isWhitesMove() ? "Whites turn" : "Blacks turn");
 
         btnBackward = findViewById(R.id.btnBackward);
-        btnBackward.setOnClickListener(this);
-
         btnForward = findViewById(R.id.btnForward);
-        btnForward.setOnClickListener(this);
-
         btnMainMenu = findViewById(R.id.btnMainMenu);
-        btnMainMenu.setOnClickListener(this);
 
 
         initializeChessboard(this);

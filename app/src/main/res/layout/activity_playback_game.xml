@@ -19,10 +19,11 @@
         android:weightSum="1">
 
         <TextView
-            android:id="@+id/playersTurn"
-            android:layout_width="220dp"
+            android:id="@+id/message"
             android:layout_height="wrap_content"
-            android:textSize="20sp" />
+            android:layout_width="220dp"
+            android:textSize="20sp"
+            android:text="TextView" />
 
     </LinearLayout>
 
